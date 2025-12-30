@@ -10,7 +10,7 @@ This guide explains how to set up GitHub Actions for automated deployment to Azu
 
 ## One-Time Setup
 
-### 1. Create Service Principal
+### 1. Create Service Principal with Federated Credentials
 
 Run these commands in your terminal:
 
@@ -25,28 +25,79 @@ az account set --subscription "YOUR_SUBSCRIPTION_NAME"
 SUBSCRIPTION_ID=$(az account show --query id -o tsv)
 echo "Subscription ID: $SUBSCRIPTION_ID"
 
-# Create service principal with Contributor role
-az ad sp create-for-rbac \
+# Create service principal
+APP_ID=$(az ad sp create-for-rbac \
   --name "gh-xshopai-user-service" \
   --role Contributor \
   --scopes /subscriptions/$SUBSCRIPTION_ID \
-  --sdk-auth
+  --query appId -o tsv)
+
+echo "Application (Client) ID: $APP_ID"
+
+# Get Object ID
+OBJECT_ID=$(az ad sp show --id $APP_ID --query id -o tsv)
+echo "Object ID: $OBJECT_ID"
+
+# Get Tenant ID
+TENANT_ID=$(az account show --query tenantId -o tsv)
+echo "Tenant ID: $TENANT_ID"
+
+# Create federated credential for dev environment
+az ad app federated-credential create \
+  --id $APP_ID \
+  --parameters "{
+    \"name\": \"gh-xshopai-user-service-dev\",
+    \"issuer\": \"https://token.actions.githubusercontent.com\",
+    \"subject\": \"repo:xshopai/user-service:environment:dev\",
+    \"audiences\": [\"api://AzureADTokenExchange\"],
+    \"description\": \"GitHub Actions - user-service - dev environment\"
+  }"
+
+# Create federated credential for prod environment
+az ad app federated-credential create \
+  --id $APP_ID \
+  --parameters "{
+    \"name\": \"gh-xshopai-user-service-prod\",
+    \"issuer\": \"https://token.actions.githubusercontent.com\",
+    \"subject\": \"repo:xshopai/user-service:environment:prod\",
+    \"audiences\": [\"api://AzureADTokenExchange\"],
+    \"description\": \"GitHub Actions - user-service - prod environment\"
+  }"
+
+# Create federated credential for main branch (no environment)
+az ad app federated-credential create \
+  --id $APP_ID \
+  --parameters "{
+    \"name\": \"gh-xshopai-user-service-main\",
+    \"issuer\": \"https://token.actions.githubusercontent.com\",
+    \"subject\": \"repo:xshopai/user-service:ref:refs/heads/main\",
+    \"audiences\": [\"api://AzureADTokenExchange\"],
+    \"description\": \"GitHub Actions - user-service - main branch\"
+  }"
+
+echo ""
+echo "=== Copy these values to GitHub Secrets ==="
+echo "AZURE_CLIENT_ID: $APP_ID"
+echo "AZURE_TENANT_ID: $TENANT_ID"
+echo "AZURE_SUBSCRIPTION_ID: $SUBSCRIPTION_ID"
 ```
 
-This will output JSON credentials. **Save this output securely!**
+**Important:** Save the output values - you'll need them for GitHub Secrets!
 
 ### 2. Configure GitHub Secrets
 
 Go to your GitHub repository: Settings → Secrets and variables → Actions → New repository secret
 
-Add the following secrets from the service principal output:
+Add the following secrets from the service principal setup:
 
-| Secret Name | Value | Example |
-|-------------|-------|---------|
-| `AZURE_CLIENT_ID` | `clientId` from JSON | `12345678-1234-1234-1234-123456789abc` |
-| `AZURE_TENANT_ID` | `tenantId` from JSON | `87654321-4321-4321-4321-cba987654321` |
-| `AZURE_SUBSCRIPTION_ID` | `subscriptionId` from JSON | `abcdef12-3456-7890-abcd-ef1234567890` |
-| `JWT_SECRET` | Your JWT secret | `your-secure-random-string-here` |
+| Secret Name | Value | Where to Find |
+|-------------|-------|---------------|
+| `AZURE_CLIENT_ID` | Application (Client) ID | Output from setup script |
+| `AZURE_TENANT_ID` | Tenant ID | Output from setup script |
+| `AZURE_SUBSCRIPTION_ID` | Subscription ID | Output from setup script |
+| `JWT_SECRET` | Your JWT secret | Generate: `openssl rand -base64 32` |
+
+**Note:** With federated credentials, you don't need a client secret in GitHub!
 
 ### 3. Configure GitHub Environments (Optional but Recommended)
 
