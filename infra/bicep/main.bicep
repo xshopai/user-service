@@ -193,23 +193,6 @@ resource appService 'Microsoft.Web/sites@2023-12-01' = {
   }
 }
 
-// Enable Dapr on App Service
-resource daprExtension 'Microsoft.Web/sites/config@2023-12-01' = {
-  parent: appService
-  name: 'web'
-  properties: {
-    daprConfig: {
-      enabled: true
-      appId: 'user-service'
-      appPort: 1002
-      httpReadBufferSize: 4
-      httpMaxRequestSize: 10
-      logLevel: environment == 'prod' ? 'info' : 'debug'
-      enableApiLogging: true
-    }
-  }
-}
-
 // Outputs
 output appServiceName string = appService.name
 output appServiceUrl string = 'https://${appService.properties.defaultHostName}'
