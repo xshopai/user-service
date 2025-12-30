@@ -1,0 +1,21 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentParameters.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "location": {
+      "value": "eastus"
+    },
+    "environment": {
+      "value": "prod"
+    },
+    "cosmosDbAccountName": {
+      "value": "cosmos-xshopai"
+    },
+    "appServicePlanSku": {
+      "value": "P1v3"
+    },
+    "nodeVersion": {
+      "value": "24-lts"
+    }
+  }
+}
