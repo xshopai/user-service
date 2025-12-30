@@ -25,7 +25,7 @@
 
 ## Overview
 
-User Service is the **foundational identity and profile management service** in the AIOutlet platform. It follows a **layered architecture** pattern with clear separation of concerns and implements **event-driven integration** using Dapr Pub/Sub for asynchronous communication.
+User Service is the **foundational identity and profile management service** in the xShop.ai platform. It follows a **layered architecture** pattern with clear separation of concerns and implements **event-driven integration** using Dapr Pub/Sub for asynchronous communication.
 
 ### Service Responsibilities
 
@@ -1774,7 +1774,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: aioutlet/user-service:1.0.0
+          image: xshopai/user-service:1.0.0
           ports:
             - containerPort: 1002
           env:

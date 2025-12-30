@@ -1,6 +1,6 @@
-# Contributing to AIOutlet User Service
+# Contributing to xShop.ai User Service
 
-We welcome contributions to the AIOutlet User Service project! By contributing, you can help improve the project and make it more useful for everyone.
+We welcome contributions to the xShop.ai User Service project! By contributing, you can help improve the project and make it more useful for everyone.
 
 ## How to Contribute
 

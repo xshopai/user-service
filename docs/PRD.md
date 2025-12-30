@@ -1,6 +1,6 @@
 # Product Requirements Document (PRD)
 
-## User Service - AIOutlet Platform
+## User Service - xShop.ai Platform
 
 **Version:** 1.0  
 **Last Updated:** October 24, 2025  
@@ -90,7 +90,7 @@
 
 ### 1.1 Product Vision
 
-The User Service is a core microservice within the AIOutlet e-commerce platform, responsible for managing all user-related data, profiles, and account lifecycle operations. It serves as the central repository for user information and provides RESTful APIs for user registration, profile management, and administrative operations.
+The User Service is a core microservice within the xShop.ai e-commerce platform, responsible for managing all user-related data, profiles, and account lifecycle operations. It serves as the central repository for user information and provides RESTful APIs for user registration, profile management, and administrative operations.
 
 ### 1.2 Business Objectives
 
@@ -284,7 +284,7 @@ The service publishes the following events via Dapr Pub/Sub:
 ### 4.1 Base URL
 
 - **Local Development**: `http://localhost:1002`
-- **Production**: `https://api.aioutlet.com/user-service`
+- **Production**: `https://api.xshop.ai/user-service`
 
 ### 4.2 API Endpoints
 
@@ -929,7 +929,7 @@ All errors follow a standardized format:
 | ------- | ------- | ------------- | -------- |
 | None    | -       | -             | -        |
 
-**Note:** User-service has no external third-party service dependencies. All integrations are with internal AIOutlet platform services.
+**Note:** User-service has no external third-party service dependencies. All integrations are with internal xShop.ai platform services.
 
 ### 7.3 Infrastructure Dependencies
 
@@ -1173,7 +1173,7 @@ spec:
     spec:
       containers:
         - name: user-service
-          image: aioutlet/user-service:1.0.0
+          image: xshopai/user-service:1.0.0
           ports:
             - containerPort: 1002
           env:
@@ -1240,7 +1240,7 @@ jobs:
         with:
           context: .
           push: true
-          tags: aioutlet/user-service:${{ github.sha }}
+          tags: xshopai/user-service:${{ github.sha }}
 
   deploy:
     needs: build
@@ -1250,7 +1250,7 @@ jobs:
       - uses: azure/k8s-deploy@v4
         with:
           manifests: k8s/deployment.yaml
-          images: aioutlet/user-service:${{ github.sha }}
+          images: xshopai/user-service:${{ github.sha }}
 ```
 
 ---
@@ -1376,7 +1376,7 @@ jobs:
 
 | Version | Date       | Author        | Changes                                        |
 | ------- | ---------- | ------------- | ---------------------------------------------- |
-| 1.0     | 2025-10-24 | AIOutlet Team | Initial PRD creation                           |
+| 1.0     | 2025-10-24 | xShop.ai Team | Initial PRD creation                           |
 | 1.1     | 2025-01-XX | AIOutlet Team | Added Future Enhancements section (Section 13) |
 
 ---
