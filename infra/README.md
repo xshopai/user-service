@@ -33,7 +33,7 @@ infra/
 
 ```bash
 # Create resource group (one-time)
-az group create --name xshopai --location eastus
+az group create --name xshopai --location uksouth
 
 # Deploy infrastructure (dev)
 az deployment group create \
@@ -57,13 +57,13 @@ Deployment is automated via GitHub Actions. See `.github/workflows/deploy-infra.
 ### Environment Parameters
 
 **Development (parameters.dev.json):**
-- Location: East US
+- Location: UK South
 - App Service SKU: F1 (Free tier - no quota required)
 - Cosmos DB: Free tier enabled
 - Throughput: 400 RU/s
 
 **Production (parameters.prod.json):**
-- Location: East US
+- Location: UK South
 - App Service SKU: P1v3 (Premium)
 - Cosmos DB: Standard tier
 - Throughput: 1000 RU/s

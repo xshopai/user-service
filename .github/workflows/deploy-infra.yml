@@ -42,7 +42,7 @@ jobs:
         run: |
           az group create \
             --name xshopai \
-            --location eastus
+            --location uksouth
 
       - name: Deploy Bicep Template
         uses: azure/arm-deploy@v2
