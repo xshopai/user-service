@@ -12,7 +12,7 @@
       "value": "cosmos-xshopai"
     },
     "appServicePlanSku": {
-      "value": "F1"
+      "value": "I1v2"
     },
     "nodeVersion": {
       "value": "24-lts"

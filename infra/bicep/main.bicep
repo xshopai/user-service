@@ -24,6 +24,12 @@ param cosmosDbAccountName string = 'cosmos-xshopai'
   'P1v3' // Premium v3
   'P2v3'
   'P3v3'
+  'I1v2' // Isolated v2
+  'I2v2'
+  'I3v2'
+  'I1mv2' // Isolated Memory optimized v2
+  'I2mv2'
+  'I3mv2'
 ])
 param appServicePlanSku string = 'F1'
 
