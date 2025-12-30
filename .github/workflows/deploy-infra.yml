@@ -41,13 +41,13 @@ jobs:
       - name: Create Resource Group
         run: |
           az group create \
-            --name xshopai \
+            --name rg-xshopai \
             --location uksouth
 
       - name: Deploy Bicep Template
         uses: azure/arm-deploy@v2
         with:
-          resourceGroupName: xshopai
+          resourceGroupName: rg-xshopai
           template: ./infra/bicep/main.bicep
           parameters: ./infra/bicep/parameters.${{ github.event.inputs.environment || 'dev' }}.json
           failOnStdErr: false
@@ -56,7 +56,7 @@ jobs:
         id: outputs
         run: |
           APP_URL=$(az deployment group show \
-            --resource-group xshopai \
+            --resource-group rg-xshopai \
             --name main \
             --query properties.outputs.appServiceUrl.value -o tsv)
           echo "app_url=$APP_URL" >> $GITHUB_OUTPUT

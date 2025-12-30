@@ -33,17 +33,17 @@ infra/
 
 ```bash
 # Create resource group (one-time)
-az group create --name xshopai --location uksouth
+az group create --name rg-xshopai --location uksouth
 
 # Deploy infrastructure (dev)
 az deployment group create \
-  --resource-group xshopai \
+  --resource-group rg-xshopai \
   --template-file infra/bicep/main.bicep \
   --parameters infra/bicep/parameters.dev.json
 
 # Deploy infrastructure (prod)
 az deployment group create \
-  --resource-group xshopai \
+  --resource-group rg-xshopai \
   --template-file infra/bicep/main.bicep \
   --parameters infra/bicep/parameters.prod.json
 ```
@@ -139,5 +139,5 @@ After infrastructure is deployed:
 To delete all resources:
 
 ```bash
-az group delete --name xshopai --yes --no-wait
+az group delete --name rg-xshopai --yes --no-wait
 ```

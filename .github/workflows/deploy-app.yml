@@ -58,12 +58,12 @@ jobs:
         id: app-info
         run: |
           APP_NAME=$(az deployment group show \
-            --resource-group xshopai \
+            --resource-group rg-xshopai \
             --name main \
             --query properties.outputs.appServiceName.value -o tsv)
           
           APP_URL=$(az deployment group show \
-            --resource-group xshopai \
+            --resource-group rg-xshopai \
             --name main \
             --query properties.outputs.appServiceUrl.value -o tsv)
           
@@ -75,7 +75,7 @@ jobs:
         run: |
           az webapp config appsettings set \
             --name ${{ steps.app-info.outputs.app_name }} \
-            --resource-group xshopai \
+            --resource-group rg-xshopai \
             --settings JWT_SECRET="${{ secrets.JWT_SECRET }}"
 
       - name: Deploy to App Service
@@ -88,7 +88,7 @@ jobs:
         run: |
           az webapp restart \
             --name ${{ steps.app-info.outputs.app_name }} \
-            --resource-group xshopai
+            --resource-group rg-xshopai
 
       - name: Health Check
         run: |
