@@ -9,15 +9,31 @@ param environment string = 'dev'
 param cosmosDbAccountName string = 'cosmos-xshopai'
 
 @description('App Service Plan SKU')
-param appServicePlanSku string = 'B1'
+@allowed([
+  'F1'   // Free tier
+  'D1'   // Shared tier
+  'B1'   // Basic tier
+  'B2'
+  'B3'
+  'S1'   // Standard tier
+  'S2'
+  'S3'
+  'P1v2' // Premium v2
+  'P2v2'
+  'P3v2'
+  'P1v3' // Premium v3
+  'P2v3'
+  'P3v3'
+])
+param appServicePlanSku string = 'F1'
 
 @description('Node.js version')
 param nodeVersion string = '24-lts'
 
 // Variables
-var appServicePlanName = 'asp-user'
-var appServiceName = 'user'
-var databaseName = 'userdb'
+var appServicePlanName = environment == 'prod' ? 'asp-user-prod' : 'asp-user'
+var appServiceName = environment == 'prod' ? 'user-prod' : 'user'
+var databaseName = environment == 'prod' ? 'userdb-prod' : 'userdb'
 var collectionName = 'users'
 
 // Cosmos DB Account (MongoDB API)
@@ -113,7 +129,7 @@ resource appService 'Microsoft.Web/sites@2023-12-01' = {
     serverFarmId: appServicePlan.id
     siteConfig: {
       linuxFxVersion: 'NODE|${nodeVersion}'
-      alwaysOn: appServicePlanSku != 'B1'
+      alwaysOn: appServicePlanSku != 'F1' && appServicePlanSku != 'D1' // AlwaysOn not available on Free/Shared
       healthCheckPath: '/readiness'
       http20Enabled: true
       minTlsVersion: '1.2'
@@ -197,4 +213,4 @@ resource appService 'Microsoft.Web/sites@2023-12-01' = {
 output appServiceName string = appService.name
 output appServiceUrl string = 'https://${appService.properties.defaultHostName}'
 output cosmosDbAccountName string = cosmosDbAccount.name
-output cosmosDbConnectionString string = cosmosDbAccount.listConnectionStrings().connectionStrings[0].connectionString
+output cosmosDbEndpoint string = cosmosDbAccount.properties.documentEndpoint

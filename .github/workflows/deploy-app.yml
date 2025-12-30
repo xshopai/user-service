@@ -54,23 +54,40 @@ jobs:
           subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
           enable-AzPSSession: false
 
+      - name: Get App Service Name
+        id: app-info
+        run: |
+          APP_NAME=$(az deployment group show \
+            --resource-group xshopai \
+            --name main \
+            --query properties.outputs.appServiceName.value -o tsv)
+          
+          APP_URL=$(az deployment group show \
+            --resource-group xshopai \
+            --name main \
+            --query properties.outputs.appServiceUrl.value -o tsv)
+          
+          echo "app_name=$APP_NAME" >> $GITHUB_OUTPUT
+          echo "app_url=$APP_URL" >> $GITHUB_OUTPUT
+          echo "Deploying to: $APP_NAME ($APP_URL)"
+
       - name: Configure JWT Secret
         run: |
           az webapp config appsettings set \
-            --name user \
+            --name ${{ steps.app-info.outputs.app_name }} \
             --resource-group xshopai \
             --settings JWT_SECRET="${{ secrets.JWT_SECRET }}"
 
       - name: Deploy to App Service
         uses: azure/webapps-deploy@v3
         with:
-          app-name: user
+          app-name: ${{ steps.app-info.outputs.app_name }}
           package: .
 
       - name: Restart App Service
         run: |
           az webapp restart \
-            --name user \
+            --name ${{ steps.app-info.outputs.app_name }} \
             --resource-group xshopai
 
       - name: Health Check
@@ -78,18 +95,20 @@ jobs:
           echo "Waiting for service to start..."
           sleep 30
           
-          HEALTH_URL="https://user.azurewebsites.net/health"
+          HEALTH_URL="${{ steps.app-info.outputs.app_url }}/health"
           RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
           
           if [ $RESPONSE -eq 200 ]; then
             echo "✅ Health check passed!"
             echo "### Deployment Successful! 🎉" >> $GITHUB_STEP_SUMMARY
-            echo "**Service URL:** https://user.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+            echo "**Service URL:** ${{ steps.app-info.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Environment:** ${{ github.event.inputs.environment || 'dev' }}" >> $GITHUB_STEP_SUMMARY
             echo "**Health Status:** Healthy" >> $GITHUB_STEP_SUMMARY
           else
             echo "❌ Health check failed with status $RESPONSE"
             echo "### Deployment Warning ⚠️" >> $GITHUB_STEP_SUMMARY
-            echo "**Service URL:** https://user.azurewebsites.net" >> $GITHUB_STEP_SUMMARY
+            echo "**Service URL:** ${{ steps.app-info.outputs.app_url }}" >> $GITHUB_STEP_SUMMARY
+            echo "**Environment:** ${{ github.event.inputs.environment || 'dev' }}" >> $GITHUB_STEP_SUMMARY
             echo "**Health Status:** Unhealthy (HTTP $RESPONSE)" >> $GITHUB_STEP_SUMMARY
             exit 1
           fi

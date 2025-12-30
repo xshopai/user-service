@@ -58,7 +58,7 @@ Deployment is automated via GitHub Actions. See `.github/workflows/deploy-infra.
 
 **Development (parameters.dev.json):**
 - Location: East US
-- App Service SKU: B1 (Basic)
+- App Service SKU: F1 (Free tier - no quota required)
 - Cosmos DB: Free tier enabled
 - Throughput: 400 RU/s
 
@@ -96,11 +96,20 @@ After deployment, the following values are available:
 
 **Development:**
 - Cosmos DB: Free tier (first 1000 RU/s free)
-- App Service B1: ~$13/month
+- App Service F1: **FREE** (with limitations)
 
 **Production:**
 - Cosmos DB: ~$24/month (1000 RU/s)
 - App Service P1v3: ~$124/month
+
+### Free Tier Limitations (F1)
+- 60 minutes/day compute time
+- 1 GB disk space
+- No custom domains
+- No scaling
+- No AlwaysOn
+
+**For production or heavy testing, upgrade to B1 or higher after requesting quota increase.**
 
 ## Next Steps
 
