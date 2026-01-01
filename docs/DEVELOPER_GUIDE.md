@@ -385,10 +385,9 @@ npm test -- --clearCache
 
 ## Next Steps
 
-- [API Reference](API.md) - Learn about all endpoints
-- [Testing Guide](TESTING.md) - Write comprehensive tests
-- [Deployment Guide](DEPLOYMENT.md) - Deploy to Azure
-- [Architecture](ARCHITECTURE.md) - Understand the design
+- [Technical Reference](TECHNICAL.md) - Architecture, security & observability
+- See `src/routes/` for API endpoints (routes are self-documenting)
+- See `tests/integration/` for API contract examples
 
 ## Support
 

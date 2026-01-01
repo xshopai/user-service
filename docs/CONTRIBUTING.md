@@ -1,363 +1,112 @@
-# Contributing Guide
+# Contributing to xShop.ai User Service
 
-Thank you for your interest in contributing to the User Service! This guide will help you get started.
+Thank you for your interest in contributing! This guide covers everything you need to know to get started.
 
-## Table of Contents
+## Quick Start
 
-- [Code of Conduct](#code-of-conduct)
-- [Getting Started](#getting-started)
-- [Development Workflow](#development-workflow)
-- [Coding Standards](#coding-standards)
-- [Pull Request Process](#pull-request-process)
-- [Testing Requirements](#testing-requirements)
-- [Documentation](#documentation)
-- [Community](#community)
-
-## Code of Conduct
-
-By participating in this project, you agree to abide by our [Code of Conduct](../../docs/CODE_OF_CONDUCT.md).
-
-### Our Standards
-
-- **Be Respectful**: Treat everyone with respect and kindness
-- **Be Inclusive**: Welcome newcomers and diverse perspectives
-- **Be Collaborative**: Work together constructively
-- **Be Professional**: Focus on what's best for the project
-
-## Getting Started
-
-### Prerequisites
-
-Before contributing, ensure you have:
-
-- Node.js 20+
-- MongoDB 8+
-- Dapr CLI 1.16.2+
-- Git
-- VS Code (recommended)
-
-### First-Time Setup
-
-1. **Fork the Repository**
-
-   ```bash
-   # Visit https://github.com/xshopai/user-service
-   # Click "Fork" button
-   ```
-
-2. **Clone Your Fork**
-
+1. **Fork & Clone**
    ```bash
    git clone https://github.com/YOUR_USERNAME/user-service.git
    cd user-service
-   ```
-
-3. **Add Upstream Remote**
-
-   ```bash
-   git remote add upstream https://github.com/xshopai/user-service.git
-   ```
-
-4. **Install Dependencies**
-
-   ```bash
    npm install
    ```
 
-5. **Set Up Environment**
-
+2. **Set Up Environment**
    ```bash
    cp .env.example .env
-   # Edit .env with your local configuration
+   # Edit .env with your configuration
    ```
 
-6. **Verify Setup**
-
+3. **Verify Setup**
    ```bash
    npm test
-   npm run lint
    npm run dev
    ```
 
-### Find Something to Work On
+4. **Find an Issue**
+   - Good first issues: [Filter by label](https://github.com/xshopai/user-service/labels/good-first-issue)
+   - Browse all: [Issues](https://github.com/xshopai/user-service/issues)
 
-- **Good First Issues**: Look for issues labeled `good-first-issue`
-- **Help Wanted**: Check issues labeled `help-wanted`
-- **Bug Fixes**: Search for `bug` label
-- **Features**: Look for `enhancement` label
+## Standards
 
-Browse issues: https://github.com/xshopai/user-service/issues
+### Code Style
 
-## Development Workflow
-
-### 1. Create Feature Branch
-
-```bash
-# Update main branch
-git checkout main
-git pull upstream main
-
-# Create feature branch
-git checkout -b feature/your-feature-name
-
-# Or for bug fixes
-git checkout -b fix/bug-description
-```
-
-**Branch Naming Convention**:
-- `feature/` - New features
-- `fix/` - Bug fixes
-- `docs/` - Documentation changes
-- `refactor/` - Code refactoring
-- `test/` - Test additions/changes
-- `chore/` - Maintenance tasks
-
-### 2. Make Changes
+- **Be Respectful**: Treat everyone with respect
+- **Be Collaborative**: Work together constructively
+- **Follow conventions**: ESLint, Prettier, and project patterns
 
 ```bash
-# Make your changes
-# Edit files, add features, fix bugs
-
-# Test your changes
-npm test
-npm run lint
-
-# Commit your changes
-git add .
-git commit -m "feat: add amazing feature"
-```
-
-### 3. Keep Branch Updated
-
-```bash
-# Regularly sync with upstream
-git fetch upstream
-git rebase upstream/main
-
-# Or merge if preferred
-git merge upstream/main
-```
-
-### 4. Push Changes
-
-```bash
-git push origin feature/your-feature-name
-```
-
-### 5. Create Pull Request
-
-1. Go to https://github.com/xshopai/user-service
-2. Click "New Pull Request"
-3. Select your branch
-4. Fill out PR template
-5. Submit for review
-
-## Coding Standards
-
-### Style Guide
-
-We use ESLint and Prettier for code formatting.
-
-```bash
-# Check code style
-npm run lint
-
-# Auto-fix issues
+# Auto-format code
 npm run lint:fix
-
-# Format code
-npm run format
 ```
 
-### Code Conventions
+### Branch Naming
 
-#### JavaScript/Node.js
+- `feature/` - New features
+- `fix/` - Bug fixes  
+- `docs/` - Documentation
+- `refactor/` - Code refactoring
+- `test/` - Tests
 
-```javascript
-// ✅ GOOD: Use ES modules
-import express from 'express';
-export default router;
+### Code Patterns
 
-// ❌ BAD: Don't use CommonJS
-const express = require('express');
-module.exports = router;
-
-// ✅ GOOD: Use async/await
-async function getUser(id) {
-  const user = await User.findById(id);
-  return user;
-}
-
-// ❌ BAD: Avoid callbacks
-function getUser(id, callback) {
-  User.findById(id, callback);
-}
-
-// ✅ GOOD: Descriptive names
-async function createUserAccount(userData) { ... }
-
-// ❌ BAD: Unclear names
-async function create(data) { ... }
-
-// ✅ GOOD: Error handling
-try {
-  const user = await userService.createUser(userData);
-  return res.status(201).json({ success: true, data: user });
-} catch (error) {
-  logger.error('Failed to create user', { error: error.message });
-  return res.status(500).json({ success: false, error: error.message });
-}
-
-// ❌ BAD: Unhandled errors
-const user = await userService.createUser(userData);
-return res.json(user);
-```
-
-#### File Structure
+**Use project patterns from [TECHNICAL.md](TECHNICAL.md)**:
 
 ```javascript
-// Order of imports
-import express from 'express';           // 1. Node built-ins & external packages
-import mongoose from 'mongoose';
+// Controller-Service-Model pattern
+// See src/controllers/, src/services/, src/models/
 
-import User from '../models/user.js';    // 2. Local imports (absolute)
-import logger from '../utils/logger.js';
+// Async/await with asyncHandler
+export const createUser = asyncHandler(async (req, res) => {
+  const user = await userService.createUser(req.body);
+  res.status(201).json({ success: true, data: user });
+});
 
-import config from './config.js';        // 3. Relative imports
-
-// Order of exports
-export const func1 = () => { ... };      // 1. Named exports
-
-export default router;                    // 2. Default export (last)
-```
-
-#### Comments
-
-```javascript
-// ✅ GOOD: Explain "why", not "what"
-// User session expires after 24h to balance security and UX
-const JWT_EXPIRY = '24h';
-
-// ❌ BAD: Obvious comments
-// Set JWT_EXPIRY to '24h'
-const JWT_EXPIRY = '24h';
-
-// ✅ GOOD: Document complex logic
-/**
- * Validates password strength using the following criteria:
- * - Minimum 8 characters
- * - At least one uppercase letter
- * - At least one lowercase letter
- * - At least one number
- * - At least one special character
- * 
- * @param {string} password - Password to validate
- * @returns {Object} Validation result with `valid` boolean and `errors` array
- */
-export function validatePassword(password) { ... }
+// Error handling
+throw new ErrorResponse('User not found', 404, 'USER_NOT_FOUND');
 ```
 
 ### Commit Messages
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/):
+Use [Conventional Commits](https://www.conventionalcommits.org/):
 
 ```bash
-# Format
-<type>(<scope>): <description>
-
-[optional body]
-
-[optional footer]
-```
-
-**Types**:
-- `feat`: New feature
-- `fix`: Bug fix
-- `docs`: Documentation changes
-- `style`: Code style changes (formatting, no logic change)
-- `refactor`: Code refactoring
-- `test`: Adding or updating tests
-- `chore`: Maintenance tasks
-
-**Examples**:
-
-```bash
-# Good commits
 feat(auth): add JWT refresh token support
-fix(validation): correct email validation regex
-docs(api): update API documentation for user endpoints
-test(user): add unit tests for user service
-refactor(controller): simplify user creation logic
-
-# With body
-feat(auth): add JWT refresh token support
-
-Implements refresh token mechanism to allow users to obtain
-new access tokens without re-authentication.
-
-Closes #123
+fix(validation): correct email regex
+docs: update contributing guide
+test(user): add integration tests
 ```
 
-## Pull Request Process
+**Types**: `feat`, `fix`, `docs`, `style`, `refactor`, `test`, `chore`
 
-### PR Title
+## Workflow
 
-Follow commit message format:
+1. **Create Branch**
+   ```bash
+   git checkout -b feature/your-feature
+   ```
 
-```
-feat(auth): add JWT refresh token support
-fix(validation): correct email validation regex
-```
+2. **Make Changes & Test**
+   ```bash
+   npm test
+   npm run lint
+   ```
 
-### PR Description
+3. **Commit**
+   ```bash
+   git commit -m "feat: add amazing feature"
+   ```
 
-Use the PR template:
+4. **Push & Create PR**
+   ```bash
+   git push origin feature/your-feature
+   # Open PR on GitHub
+   ```
 
-```markdown
-## Description
-Brief description of changes
-
-## Type of Change
-- [ ] Bug fix
-- [ ] New feature
-- [ ] Breaking change
-- [ ] Documentation update
-
-## Testing
-- [ ] Unit tests added/updated
-- [ ] Integration tests added/updated
-- [ ] Manual testing performed
-
-## Checklist
-- [ ] Code follows style guidelines
-- [ ] Self-review completed
-- [ ] Comments added for complex code
-- [ ] Documentation updated
-- [ ] Tests pass locally
-- [ ] No new warnings generated
-```
-
-### Review Process
-
-1. **Automated Checks**: CI/CD runs tests, linting, coverage
-2. **Code Review**: Maintainers review your code
-3. **Address Feedback**: Make requested changes
-4. **Approval**: Get approval from maintainer
-5. **Merge**: Maintainer merges your PR
-
-### Review Guidelines
-
-**For Contributors**:
-- Respond to feedback promptly
-- Ask questions if unclear
-- Be open to suggestions
-- Keep PR scope focused
-
-**For Reviewers**:
-- Review within 48 hours
-- Be constructive and respectful
-- Explain reasoning for changes
-- Approve when ready
+5. **Address Review Feedback**
+   - Respond within 48 hours
+   - Ask questions if unclear
+   - Keep PR scope focused
 
 ## Testing Requirements
 
@@ -421,132 +170,36 @@ describe('UserService', () => {
 });
 ```
 
-## Documentation
+**Required Coverage**: ≥ 80% overall, ≥ 90% for new features
 
-### When to Update Docs
-
-Update documentation when:
-- Adding new features
-- Changing API endpoints
-- Modifying configuration
-- Adding environment variables
-- Changing deployment process
-
-### Documentation Files
-
-- **README.md**: Overview and quick start
-- **docs/API.md**: API reference
-- **docs/DEVELOPMENT.md**: Development setup
-- **docs/CONFIGURATION.md**: Configuration options
-- **docs/DEPLOYMENT.md**: Deployment instructions
-
-### Documentation Style
-
-```markdown
-# Clear headings
-
-Use descriptive headings that explain what the section covers.
-
-## Code examples
-
-Provide working code examples:
-
-\`\`\`javascript
-// Include comments explaining the code
-const user = await User.findById(userId);
-\`\`\`
-
-## Clear instructions
-
-Break down complex steps:
-
-1. First, do this
-2. Then, do that
-3. Finally, verify
-
-## Visual aids
-
-Include diagrams, screenshots, or ASCII art when helpful.
+```bash
+npm test              # Run all tests
+npm run test:coverage # Check coverage
+npm run test:watch    # Watch mode
 ```
 
-## Community
-
-### Getting Help
-
-- **Questions**: Open a [Discussion](https://github.com/xshopai/user-service/discussions)
-- **Bugs**: Open an [Issue](https://github.com/xshopai/user-service/issues)
-- **Chat**: Join our [Slack channel](#) (if available)
-
-### Reporting Bugs
-
-**Before Submitting**:
-- Check existing issues
-- Verify bug exists in latest version
-- Collect relevant information
-
-**Bug Report Template**:
-
-```markdown
-## Description
-Clear description of the bug
-
-## Steps to Reproduce
-1. Step one
-2. Step two
-3. Step three
-
-## Expected Behavior
-What should happen
-
-## Actual Behavior
-What actually happens
-
-## Environment
-- OS: Ubuntu 22.04
-- Node.js: 20.10.0
-- MongoDB: 8.0.0
-- Service Version: 1.2.3
-
-## Additional Context
-Logs, screenshots, etc.
+**Test Pattern** (Arrange-Act-Assert):
+```javascript
+describe('createUser', () => {
+  it('should create user successfully', async () => {
+    // Arrange
+    const userData = { email: 'test@example.com' };
+    
+    // Act
+    const result = await userService.createUser(userData);
+    
+    // Assert
+    expect(result).toHaveProperty('userId');
+  });
+});
 ```
 
-### Suggesting Features
+## Getting Help
 
-**Feature Request Template**:
-
-```markdown
-## Problem Statement
-What problem does this solve?
-
-## Proposed Solution
-How should it work?
-
-## Alternatives Considered
-Other solutions you've considered
-
-## Additional Context
-Any other relevant information
-```
+- **Questions**: [GitHub Discussions](https://github.com/xshopai/user-service/discussions)
+- **Bugs**: [GitHub Issues](https://github.com/xshopai/user-service/issues)
+- **Reference**: See [DEVELOPER_GUIDE.md](DEVELOPER_GUIDE.md) and [TECHNICAL.md](TECHNICAL.md)
 
 ## Recognition
 
-Contributors are recognized in:
-- **README.md**: Contributors section
-- **Release Notes**: Credited in changelog
-- **GitHub**: Contributor badge
-
-## Questions?
-
-If you have questions about contributing:
-
-1. Check this guide and other documentation
-2. Search existing issues and discussions
-3. Open a new discussion
-4. Reach out to maintainers
-
-Thank you for contributing to xShop.ai! 🎉
-
-## License
-
-By contributing, you agree that your contributions will be licensed under the same [LICENSE](../LICENSE) as the project.
+Contributors are credited in README.md and release notes. Thank you! 🎉
