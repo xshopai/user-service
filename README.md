@@ -1,15 +1,25 @@
-# 👤 User Service
+# User Service
 
-User management microservice for xShop.ai - handles user profiles, authentication data, preferences, and account lifecycle.
+User management microservice for **xShop._ai_** - handles comprehensive user profile management, social identity linking, email verification, address and payment method storage, wishlist management, and role-based access control. Publishes user lifecycle events to other services and maintains complete audit trails for all user operations. Designed as an event-driven service with MongoDB for profile persistence and Dapr for service mesh integration.
 
-## 🚀 Quick Start
+## Key Features
+
+- User profile management (CRUD operations)
+- Email verification and password management
+- Address and payment method storage
+- Wishlist and preferences management
+- Event publishing for user lifecycle changes
+- Role-based access control (RBAC)
+- Comprehensive audit logging
+- Social identity linking (Google, Facebook, Twitter) - Future Enhancement
+
+## Quick Start
 
 ### Prerequisites
 
 - **Node.js** 20+ ([Download](https://nodejs.org/))
-- **MongoDB** 8+ ([Download](https://www.mongodb.com/try/download/community))
 - **Dapr CLI** 1.16+ ([Install Guide](https://docs.dapr.io/getting-started/install-dapr-cli/))
-- **Docker** (optional, for containerized MongoDB)
+- **Docker** (optional, for running MongoDB in container)
 
 ### Setup
 
@@ -33,9 +43,8 @@ npm install
 # Copy environment template
 cp .env.example .env
 
-# Edit .env - update these values:
-# MONGODB_URI=mongodb://localhost:27018/user_service_db
-# JWT_SECRET=your-secret-key-change-in-production
+# Edit .env - update service-specific values if needed
+# Database connection is managed via Dapr secret store (.dapr/secrets.json)
 ```
 
 **4. Initialize Dapr**
@@ -65,35 +74,15 @@ curl http://localhost:1002/health
 curl http://localhost:3502/v1.0/invoke/user-service/method/health
 ```
 
-### Common Commands
 
-```bash
-# Run tests
-npm test
-
-# Run with coverage
-npm run test:coverage
-
-# Lint code
-npm run lint
-
-# Debug mode
-npm run dev:debug
-
-# Production mode
-npm start
-```
-
-## 📚 Documentation
+## Documentation
 
 | Document | Description |
 |----------|-------------|
 | [📖 Developer Guide](docs/DEVELOPER_GUIDE.md) | Local setup, debugging, daily workflows |
 | [📘 Technical Reference](docs/TECHNICAL.md) | Architecture, security, monitoring |
 
-**API Documentation**: See `src/routes/` for endpoint definitions and `tests/integration/` for API contract examples.
-
-## ⚙️ Configuration
+## Configuration
 
 ### Required Environment Variables
 
@@ -101,9 +90,6 @@ npm start
 # Service
 NODE_ENV=development              # Environment: development, production, test
 PORT=1002                         # HTTP server port
-
-# Database
-MONGODB_URI=mongodb://localhost:27018/user_service_db
 
 # Security
 JWT_SECRET=your-secret-key        # JWT signing secret (32+ characters)
@@ -114,30 +100,23 @@ DAPR_HTTP_PORT=3502              # Dapr sidecar HTTP port
 DAPR_GRPC_PORT=50002             # Dapr sidecar gRPC port
 ```
 
+**Note**: Database connection is managed through Dapr's secret store component (`.dapr/secrets.json`). MongoDB credentials are configured there, not in `.env`.
+
 See [.env.example](.env.example) for complete configuration options.
 
-## ✨ Key Features
 
-- User profile management (CRUD operations)
-- Social identity linking (Google, Facebook, Twitter)
-- Email verification and password management
-- Address and payment method storage
-- Wishlist and preferences management
-- Event publishing for user lifecycle changes
-- Role-based access control (RBAC)
-- Comprehensive audit logging
 
-## 🔗 Related Services
+## Related Services
 
 - [auth-service](https://github.com/xshopai/auth-service) - Authentication and JWT issuance
 - [admin-service](https://github.com/xshopai/admin-service) - Admin operations
 - [audit-service](https://github.com/xshopai/audit-service) - Audit logging
 
-## 📄 License
+## License
 
 MIT License - see [LICENSE](LICENSE)
 
-## 📞 Support
+## Support
 
 - **Issues**: [GitHub Issues](https://github.com/xshopai/user-service/issues)
 - **Discussions**: [GitHub Discussions](https://github.com/xshopai/user-service/discussions)
