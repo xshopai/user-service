@@ -48,7 +48,7 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
 
       // Validate CloudEvents schema
       expect(eventData.specversion).toBe('1.0');
-      expect(eventData.type).toBe('com.aioutlet.user.created');
+      expect(eventData.type).toBe('com.xshopai.user.created');
       expect(eventData.source).toBe('user-service');
       expect(eventData.id).toBeDefined();
       expect(eventData.time).toBeDefined();
@@ -144,7 +144,7 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
 
       expect(pubsubName).toBe('user-pubsub');
       expect(topic).toBe('user.updated');
-      expect(eventData.type).toBe('com.aioutlet.user.updated');
+      expect(eventData.type).toBe('com.xshopai.user.updated');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');
       expect(eventData.data.updatedBy).toBe('507f1f77bcf86cd799439012');
       expect(eventData.data.email).toBe('updated@example.com');
@@ -161,7 +161,7 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
 
       expect(pubsubName).toBe('user-pubsub');
       expect(topic).toBe('user.deleted');
-      expect(eventData.type).toBe('com.aioutlet.user.deleted');
+      expect(eventData.type).toBe('com.xshopai.user.deleted');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');
       expect(eventData.data.timestamp).toBeDefined();
       expect(eventData.metadata.correlationId).toBe('test-corr-id-789');
@@ -183,7 +183,7 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
 
       expect(pubsubName).toBe('user-pubsub');
       expect(topic).toBe('user.logged_in');
-      expect(eventData.type).toBe('com.aioutlet.user.logged_in');
+      expect(eventData.type).toBe('com.xshopai.user.logged_in');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');
       expect(eventData.data.email).toBe('user@example.com');
       expect(eventData.data.timestamp).toBeDefined();
@@ -205,7 +205,7 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
 
       expect(pubsubName).toBe('user-pubsub');
       expect(topic).toBe('user.logged_out');
-      expect(eventData.type).toBe('com.aioutlet.user.logged_out');
+      expect(eventData.type).toBe('com.xshopai.user.logged_out');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');
       expect(eventData.data.email).toBe('user@example.com');
       expect(eventData.data.timestamp).toBeDefined();

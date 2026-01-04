@@ -1,6 +1,6 @@
 # User Service
 
-User management microservice for **xShop._ai_** - handles comprehensive user profile management, social identity linking, email verification, address and payment method storage, wishlist management, and role-based access control. Publishes user lifecycle events to other services and maintains complete audit trails for all user operations. Designed as an event-driven service with MongoDB for profile persistence and Dapr for service mesh integration.
+User management microservice for **xshop._ai_** - handles comprehensive user profile management, social identity linking, email verification, address and payment method storage, wishlist management, and role-based access control. Publishes user lifecycle events to other services and maintains complete audit trails for all user operations. Designed as an event-driven service with MongoDB for profile persistence and Dapr for service mesh integration.
 
 ## Key Features
 

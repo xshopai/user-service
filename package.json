@@ -1,15 +1,15 @@
 {
   "name": "user-service",
   "version": "1.0.0",
-  "description": "User management microservice for xShop.ai platform.",
+  "description": "User management microservice for xshop.ai platform.",
   "main": "src/server.js",
   "type": "module",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/aioutlet/user-service.git"
+    "url": "git+https://github.com/xshopai/user-service.git"
   },
   "keywords": [
-    "aioutlet",
+    "xshopai",
     "microservice",
     "node",
     "express",
@@ -18,9 +18,9 @@
   "author": "",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/aioutlet/user-service/issues"
+    "url": "https://github.com/xshopai/user-service/issues"
   },
-  "homepage": "https://github.com/aioutlet/user-service#readme",
+  "homepage": "https://github.com/xshopai/user-service#readme",
   "scripts": {
     "start": "dapr run --app-id user-service --app-port 1002 --dapr-http-port 3502 --dapr-grpc-port 50002 --log-level warn --config ./.dapr/config.yaml --resources-path ./.dapr/components -- node src/server.js",
     "dev": "dapr run --app-id user-service --app-port 1002 --dapr-http-port 3502 --dapr-grpc-port 50002 --log-level warn --config ./.dapr/config.yaml --resources-path ./.dapr/components -- nodemon src/server.js",

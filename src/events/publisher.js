@@ -41,7 +41,7 @@ export async function publishUserCreated(user, traceId, ipAddress = null, userAg
   try {
     const eventData = {
       specversion: '1.0',
-      type: 'com.aioutlet.user.created',
+      type: 'com.xshopai.user.created',
       source: 'user-service',
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       time: new Date().toISOString(),
@@ -110,7 +110,7 @@ export async function publishUserUpdated(user, traceId, updatedBy = null, ipAddr
   try {
     const eventData = {
       specversion: '1.0',
-      type: 'com.aioutlet.user.updated',
+      type: 'com.xshopai.user.updated',
       source: 'user-service',
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       time: new Date().toISOString(),
@@ -177,7 +177,7 @@ export async function publishUserDeleted(userId, traceId) {
   try {
     const eventData = {
       specversion: '1.0',
-      type: 'com.aioutlet.user.deleted',
+      type: 'com.xshopai.user.deleted',
       source: 'user-service',
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       time: new Date().toISOString(),
@@ -235,7 +235,7 @@ export async function publishUserLoggedIn(userId, email, traceId, ipAddress = nu
   try {
     const eventData = {
       specversion: '1.0',
-      type: 'com.aioutlet.user.logged_in',
+      type: 'com.xshopai.user.logged_in',
       source: 'user-service',
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       time: new Date().toISOString(),
@@ -294,7 +294,7 @@ export async function publishUserLoggedOut(userId, email, traceId) {
   try {
     const eventData = {
       specversion: '1.0',
-      type: 'com.aioutlet.user.logged_out',
+      type: 'com.xshopai.user.logged_out',
       source: 'user-service',
       id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
       time: new Date().toISOString(),

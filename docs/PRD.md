@@ -1,11 +1,11 @@
 # Product Requirements Document (PRD)
 
-## User Service - xShop.ai Platform
+## User Service - xshop.ai Platform
 
 **Version:** 1.0  
 **Last Updated:** October 24, 2025  
 **Status:** Active Development  
-**Owner:** xShop.ai Platform Team
+**Owner:** xshop.ai Platform Team
 
 ---
 
@@ -90,7 +90,7 @@
 
 ### 1.1 Product Vision
 
-The User Service is a core microservice within the xShop.ai e-commerce platform, responsible for managing all user-related data, profiles, and account lifecycle operations. It serves as the central repository for user information and provides RESTful APIs for user registration, profile management, and administrative operations.
+The User Service is a core microservice within the xshop.ai e-commerce platform, responsible for managing all user-related data, profiles, and account lifecycle operations. It serves as the central repository for user information and provides RESTful APIs for user registration, profile management, and administrative operations.
 
 ### 1.2 Business Objectives
 
@@ -929,7 +929,7 @@ All errors follow a standardized format:
 | ------- | ------- | ------------- | -------- |
 | None    | -       | -             | -        |
 
-**Note:** User-service has no external third-party service dependencies. All integrations are with internal xShop.ai platform services.
+**Note:** User-service has no external third-party service dependencies. All integrations are with internal xshop.ai platform services.
 
 ### 7.3 Infrastructure Dependencies
 
@@ -1376,8 +1376,8 @@ jobs:
 
 | Version | Date       | Author        | Changes                                        |
 | ------- | ---------- | ------------- | ---------------------------------------------- |
-| 1.0     | 2025-10-24 | xShop.ai Team | Initial PRD creation                           |
-| 1.1     | 2025-01-XX | xShop.ai Team | Added Future Enhancements section (Section 13) |
+| 1.0     | 2025-10-24 | xshop.ai Team | Initial PRD creation                           |
+| 1.1     | 2025-01-XX | xshop.ai Team | Added Future Enhancements section (Section 13) |
 
 ---
 
@@ -1396,7 +1396,7 @@ jobs:
 
 ### 15.2 References
 
-- [xShop.ai Architecture Guide](../../docs/ARCHITECTURE.md)
+- [xshop.ai Architecture Guide](../../docs/ARCHITECTURE.md)
 - [Event-Driven Architecture](../../docs/EVENT_DRIVEN_ARCHITECTURE.md)
 - [MongoDB Best Practices](https://www.mongodb.com/docs/manual/administration/production-notes/)
 - [Node.js Security Best Practices](https://cheatsheetseries.owasp.org/cheatsheets/Nodejs_Security_Cheat_Sheet.html)

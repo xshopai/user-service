@@ -77,7 +77,7 @@ Environment variables are set directly in App Service settings.
 
 ## Recommendation
 
-For xShop.ai with multiple microservices, **migrate to Azure Container Apps** to fully utilize Dapr.
+For xshop.ai with multiple microservices, **migrate to Azure Container Apps** to fully utilize Dapr.
 
 Would you like me to:
 1. Create Container Apps Bicep templates?

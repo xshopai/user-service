@@ -1,6 +1,6 @@
 # Copilot Instructions for User Service
 
-**Service**: User management microservice for xShop.ai platform  
+**Service**: User management microservice for xshop.ai platform  
 **Stack**: Node.js 18+, Express 5.1.0, MongoDB 8.18.0, Mongoose 8.18.0  
 **Port**: 1002 | **Dapr HTTP**: 3502 | **Dapr gRPC**: 50003  
 **Pattern**: Pure Publisher (Dapr Pub/Sub → RabbitMQ)
@@ -49,7 +49,7 @@ await publishUserCreated(user, req.traceId, req.ip, req.headers['user-agent']);
 ```javascript
 {
   specversion: '1.0',
-  type: 'com.aioutlet.user.created',
+  type: 'com.xshopai.user.created',
   source: 'user-service',
   id: `${Date.now()}-${random}`,
   time: '2025-11-19T10:30:00Z',
@@ -1199,7 +1199,7 @@ services:
       - mongodb
       - dapr-sidecar
     networks:
-      - aioutlet-network
+      - xshopai-network
     healthcheck:
       test: ['CMD', 'curl', '-f', 'http://localhost:1002/health']
       interval: 30s
@@ -1226,7 +1226,7 @@ services:
     depends_on:
       - rabbitmq
     networks:
-      - aioutlet-network
+      - xshopai-network
 
   mongodb:
     image: mongo:8.0
@@ -1237,7 +1237,7 @@ services:
     volumes:
       - mongodb_data:/data/db
     networks:
-      - aioutlet-network
+      - xshopai-network
 
   rabbitmq:
     image: rabbitmq:3-management
@@ -1245,10 +1245,10 @@ services:
       - '5672:5672'
       - '15672:15672'
     networks:
-      - aioutlet-network
+      - xshopai-network
 
 networks:
-  aioutlet-network:
+  xshopai-network:
     driver: bridge
 
 volumes:
@@ -1262,7 +1262,7 @@ volumes:
 ### 1. Clone and Install
 
 ```bash
-git clone https://github.com/aioutlet/user-service.git
+git clone https://github.com/xshopai/user-service.git
 cd user-service
 npm install
 ```

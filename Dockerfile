@@ -88,9 +88,9 @@ ENTRYPOINT ["dumb-init", "--"]
 CMD ["npm", "start"]
 
 # Labels for better image management and security scanning
-LABEL maintainer="xShop.ai Team"
+LABEL maintainer="xshop.ai Team"
 LABEL service="user-service"
 LABEL version="1.0.0"
 LABEL org.opencontainers.image.source="https://github.com/xshopai/user-service"
-LABEL org.opencontainers.image.description="User Service for xShop.ai platform"
-LABEL org.opencontainers.image.vendor="xShop.ai"
+LABEL org.opencontainers.image.description="User Service for xshop.ai platform"
+LABEL org.opencontainers.image.vendor="xshop.ai"
