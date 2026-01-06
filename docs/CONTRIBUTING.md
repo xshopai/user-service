@@ -1,4 +1,4 @@
-# Contributing to xshop.ai User Service
+# Contributing to xshopai User Service
 
 Thank you for your interest in contributing! This guide covers everything you need to know to get started.
 

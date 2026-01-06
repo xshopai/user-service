@@ -1,6 +1,6 @@
 # Copilot Instructions for User Service
 
-**Service**: User management microservice for xshop.ai platform  
+**Service**: User management microservice for xshopai platform  
 **Stack**: Node.js 18+, Express 5.1.0, MongoDB 8.18.0, Mongoose 8.18.0  
 **Port**: 1002 | **Dapr HTTP**: 3502 | **Dapr gRPC**: 50003  
 **Pattern**: Pure Publisher (Dapr Pub/Sub → RabbitMQ)

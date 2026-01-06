@@ -35,7 +35,7 @@
 
 ## Overview
 
-User Service is the **foundational identity and profile management service** in the xshop.ai platform. It follows a **layered architecture** pattern with clear separation of concerns and implements **event-driven integration** using Dapr Pub/Sub for asynchronous communication.
+User Service is the **foundational identity and profile management service** in the xshopai platform. It follows a **layered architecture** pattern with clear separation of concerns and implements **event-driven integration** using Dapr Pub/Sub for asynchronous communication.
 
 ### Service Responsibilities
 

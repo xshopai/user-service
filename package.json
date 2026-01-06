@@ -1,7 +1,7 @@
 {
   "name": "user-service",
   "version": "1.0.0",
-  "description": "User management microservice for xshop.ai platform.",
+  "description": "User management microservice for xshopai platform.",
   "main": "src/server.js",
   "type": "module",
   "repository": {
