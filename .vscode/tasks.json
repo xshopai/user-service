@@ -25,18 +25,14 @@
         "clear": false
       },
       "problemMatcher": {
-        "pattern": [
-          {
-            "regexp": ".",
-            "file": 1,
-            "location": 2,
-            "message": 3
-          }
-        ],
+        "owner": "dapr",
+        "pattern": {
+          "regexp": "^$"
+        },
         "background": {
           "activeOnStart": true,
-          "beginsPattern": ".*Starting Dapr.*",
-          "endsPattern": ".*(You're up and running|Dapr initialized|dapr initialized).*"
+          "beginsPattern": "Starting Dapr",
+          "endsPattern": "You're up and running"
         }
       }
     },
