@@ -55,6 +55,7 @@ jobs:
   # ==============================================================================
   deploy:
     name: Deploy to ${{ inputs.environment || 'dev' }}
+    environment: ${{ inputs.environment || 'dev' }}
     uses: xshopai/infrastructure/.github/workflows/reusable-deploy-container-app.yml@main
     with:
       service_name: user-service
