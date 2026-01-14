@@ -47,6 +47,7 @@ on:
 permissions:
   id-token: write
   contents: read
+  packages: write
 
 jobs:
   # ==============================================================================
@@ -76,9 +77,6 @@ jobs:
       
       # Health check
       health_probe_path: /health
-      
-      # Skip tests flag
-      skip_tests: ${{ inputs.skip_tests || false }}
     
     secrets: inherit
 
