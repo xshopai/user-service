@@ -74,10 +74,8 @@ jobs:
       min_replicas: 1
       max_replicas: 3
       
-      # Health checks
+      # Health check
       health_probe_path: /health
-      readiness_probe_path: /health/ready
-      startup_probe_path: /health
       
       # Skip tests flag
       skip_tests: ${{ inputs.skip_tests || false }}
