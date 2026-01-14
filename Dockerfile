@@ -84,8 +84,10 @@ HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
     CMD node -e "require('http').get('http://localhost:1002/readiness', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 # Use dumb-init to handle signals properly
+# In production (Azure Container Apps), Dapr is provided as a sidecar
+# So we run the app directly instead of through Dapr CLI
 ENTRYPOINT ["dumb-init", "--"]
-CMD ["npm", "start"]
+CMD ["node", "src/server.js"]
 
 # Labels for better image management and security scanning
 LABEL maintainer="xshopai Team"
