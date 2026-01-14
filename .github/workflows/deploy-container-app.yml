@@ -104,7 +104,7 @@ jobs:
         id: app-url
         run: |
           APP_URL=$(az containerapp show \
-            --name ca-user-service-${{ inputs.environment || 'dev' }} \
+            --name user-service \
             --resource-group rg-xshopai-${{ inputs.environment || 'dev' }} \
             --query properties.configuration.ingress.fqdn \
             -o tsv)
