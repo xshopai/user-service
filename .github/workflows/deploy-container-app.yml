@@ -23,9 +23,10 @@ on:
         required: true
         type: choice
         options:
-          - development
-          - production
-        default: 'development'
+          - dev
+          - staging
+          - prod
+        default: 'dev'
       
       skip_tests:
         description: 'Skip tests (not recommended for prod)'
@@ -57,7 +58,7 @@ jobs:
     uses: xshopai/infrastructure/.github/workflows/reusable-deploy-container-app.yml@main
     with:
       service_name: user-service
-      environment: ${{ inputs.environment || 'development' }}
+      environment: ${{ inputs.environment || 'dev' }}
       dockerfile_path: Dockerfile
       docker_context: .
       docker_target: production
