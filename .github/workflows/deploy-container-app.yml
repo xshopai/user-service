@@ -62,12 +62,12 @@ jobs:
       dockerfile_path: Dockerfile
       docker_context: .
       docker_target: production
-      container_port: 1002
+      container_port: 8002
       
       # Dapr configuration
       dapr_enabled: true
       dapr_app_protocol: http
-      dapr_app_port: 1002
+      dapr_app_port: 8002
       
       # Ingress configuration
       ingress_enabled: true
@@ -227,7 +227,7 @@ jobs:
             echo "**Status:** Enabled ✅" >> $GITHUB_STEP_SUMMARY
             echo "**App ID:** $DAPR_APP_ID" >> $GITHUB_STEP_SUMMARY
             echo "**Protocol:** HTTP" >> $GITHUB_STEP_SUMMARY
-            echo "**App Port:** 1002" >> $GITHUB_STEP_SUMMARY
+            echo "**App Port:** 8002" >> $GITHUB_STEP_SUMMARY
           else
             echo "⚠️ Dapr sidecar is NOT enabled"
             echo "" >> $GITHUB_STEP_SUMMARY
