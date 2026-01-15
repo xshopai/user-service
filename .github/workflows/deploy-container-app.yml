@@ -202,13 +202,13 @@ jobs:
           echo "Verifying Dapr sidecar is enabled..."
           
           DAPR_STATUS=$(az containerapp show \
-            --name ca-user-service-${{ inputs.environment || 'dev' }} \
+            --name user-service \
             --resource-group rg-xshopai-${{ inputs.environment || 'dev' }} \
             --query properties.configuration.dapr.enabled \
             -o tsv)
           
           DAPR_APP_ID=$(az containerapp show \
-            --name ca-user-service-${{ inputs.environment || 'dev' }} \
+            --name user-service \
             --resource-group rg-xshopai-${{ inputs.environment || 'dev' }} \
             --query properties.configuration.dapr.appId \
             -o tsv)
