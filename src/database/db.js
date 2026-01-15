@@ -11,10 +11,14 @@ const connectDB = async () => {
     const host = dbConfig.host === 'localhost' ? '127.0.0.1' : dbConfig.host;
 
     let mongodb_uri;
+    // Check if this is Azure Cosmos DB (port 10255 or host contains cosmos)
+    const isCosmosDB = dbConfig.port === '10255' || host.includes('cosmos.azure.com');
+    const sslParam = isCosmosDB ? '&ssl=true&retrywrites=false' : '';
+    
     if (dbConfig.username && dbConfig.password) {
-      mongodb_uri = `mongodb://${dbConfig.username}:${dbConfig.password}@${host}:${dbConfig.port}/${dbConfig.database}?authSource=${dbConfig.authSource}`;
+      mongodb_uri = `mongodb://${dbConfig.username}:${dbConfig.password}@${host}:${dbConfig.port}/${dbConfig.database}?authSource=${dbConfig.authSource}${sslParam}`;
     } else {
-      mongodb_uri = `mongodb://${host}:${dbConfig.port}/${dbConfig.database}`;
+      mongodb_uri = `mongodb://${host}:${dbConfig.port}/${dbConfig.database}${sslParam ? '?' + sslParam.substring(1) : ''}`;
     }
 
     logger.info(`Connecting to MongoDB: ${host}:${dbConfig.port}/${dbConfig.database}`);
@@ -26,12 +30,21 @@ const connectDB = async () => {
     mongoose.set('strictQuery', false);
 
     // Connect to MongoDB with connection options
-    const conn = await mongoose.connect(mongodb_uri, {
+    const connectionOptions = {
       maxPoolSize: 10,
-      serverSelectionTimeoutMS: 1002,
+      serverSelectionTimeoutMS: 30000, // 30 seconds for cloud connections
       socketTimeoutMS: 45000,
       family: 4, // Force IPv4
-    });
+    };
+
+    // Add TLS options for Cosmos DB
+    if (isCosmosDB) {
+      connectionOptions.tls = true;
+      connectionOptions.retryWrites = false;
+      logger.info('Using Cosmos DB connection settings (TLS enabled)');
+    }
+
+    const conn = await mongoose.connect(mongodb_uri, connectionOptions);
 
     logger.info(`MongoDB connected: ${conn.connection.host}:${conn.connection.port}/${conn.connection.name}`);
 
