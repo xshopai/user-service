@@ -25,7 +25,11 @@ class SecretManager {
 
   /**
    * Get a secret value from Dapr secret store
-   * @param {string} secretName - Name of the secret to retrieve
+   * 
+   * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
+   * Both local secrets.json and Azure Key Vault use the same naming convention.
+   * 
+   * @param {string} secretName - Name of the secret to retrieve (use hyphens, e.g., 'mongodb-host')
    * @returns {Promise<string|null>} Secret value or null if not found
    */
   async getSecret(secretName) {
@@ -35,20 +39,14 @@ class SecretManager {
         daprPort: this.daprPort,
       });
 
-      // Azure Key Vault doesn't support underscores in secret names
-      // Convert underscores to hyphens for Key Vault compatibility
-      const keyVaultSecretName = secretName.replace(/_/g, '-');
-
-      const response = await client.secret.get(this.secretStoreName, keyVaultSecretName);
+      const response = await client.secret.get(this.secretStoreName, secretName);
 
       // Dapr returns an object like { secretName: 'value' }
-      // Use the Key Vault secret name (with hyphens) to access the response
-      if (response && keyVaultSecretName in response) {
-        const value = response[keyVaultSecretName];
+      if (response && secretName in response) {
+        const value = response[secretName];
         logger.debug('Retrieved secret from Dapr', {
           event: 'secret_retrieved',
           secretName,
-          keyVaultSecretName,
           source: 'dapr',
           store: this.secretStoreName,
         });
@@ -58,7 +56,6 @@ class SecretManager {
       logger.error('Secret not found in Dapr store', {
         event: 'secret_not_found',
         secretName,
-        keyVaultSecretName,
         store: this.secretStoreName,
       });
       return null;
@@ -66,7 +63,6 @@ class SecretManager {
       logger.error(`Failed to get secret from Dapr: ${error.message}`, {
         event: 'secret_retrieval_error',
         secretName,
-        keyVaultSecretName: secretName.replace(/_/g, '-'),
         error: error.message,
         store: this.secretStoreName,
       });
@@ -76,16 +72,20 @@ class SecretManager {
 
   /**
    * Get database configuration from secrets or environment variables
+   * 
+   * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
+   * Both local secrets.json and Azure Key Vault use the same naming convention.
+   * 
    * @returns {Promise<Object>} Database connection parameters
    */
   async getDatabaseConfig() {
     const [host, port, username, password, database, authSource] = await Promise.all([
-      this.getSecret('MONGODB_HOST'),
-      this.getSecret('MONGODB_PORT'),
-      this.getSecret('MONGO_INITDB_ROOT_USERNAME'),
-      this.getSecret('MONGO_INITDB_ROOT_PASSWORD'),
-      this.getSecret('MONGO_INITDB_DATABASE'),
-      this.getSecret('MONGODB_AUTH_SOURCE'),
+      this.getSecret('mongodb-host'),
+      this.getSecret('mongodb-port'),
+      this.getSecret('mongo-initdb-root-username'),
+      this.getSecret('mongo-initdb-root-password'),
+      this.getSecret('mongo-initdb-database'),
+      this.getSecret('mongodb-auth-source'),
     ]);
 
     return {
@@ -100,11 +100,14 @@ class SecretManager {
 
   /**
    * Get JWT configuration from secrets
-   * Only JWT_SECRET is truly secret - algorithm and expiration are just config.
+   * Only jwt-secret is truly secret - algorithm and expiration are just config.
+   * 
+   * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
+   * 
    * @returns {Promise<Object>} JWT configuration parameters
    */
   async getJwtConfig() {
-    const secret = await this.getSecret('JWT_SECRET');
+    const secret = await this.getSecret('jwt-secret');
 
     return {
       secret: secret || 'default-secret-key',
