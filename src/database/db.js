@@ -12,13 +12,27 @@ const connectDB = async () => {
 
     let mongodb_uri;
     // Check if this is Azure Cosmos DB (port 10255 or host contains cosmos)
-    const isCosmosDB = dbConfig.port === '10255' || host.includes('cosmos.azure.com');
-    const sslParam = isCosmosDB ? '&ssl=true&retrywrites=false' : '';
+    // Use String() conversion to handle both string and number port values
+    const isCosmosDB = String(dbConfig.port) === '10255' || host.includes('cosmos.azure.com');
+    
+    // Log detection for debugging
+    logger.info(`Database config - Host: ${host}, Port: ${dbConfig.port} (type: ${typeof dbConfig.port}), IsCosmosDB: ${isCosmosDB}`);
+    
+    // Cosmos DB requires ssl=true, replicaSet=globaldb, retryWrites=false, maxIdleTimeMS=120000
+    const cosmosParams = 'ssl=true&replicaSet=globaldb&retrywrites=false&maxIdleTimeMS=120000';
     
     if (dbConfig.username && dbConfig.password) {
-      mongodb_uri = `mongodb://${dbConfig.username}:${dbConfig.password}@${host}:${dbConfig.port}/${dbConfig.database}?authSource=${dbConfig.authSource}${sslParam}`;
+      if (isCosmosDB) {
+        mongodb_uri = `mongodb://${dbConfig.username}:${dbConfig.password}@${host}:${dbConfig.port}/${dbConfig.database}?authSource=${dbConfig.authSource}&${cosmosParams}`;
+      } else {
+        mongodb_uri = `mongodb://${dbConfig.username}:${dbConfig.password}@${host}:${dbConfig.port}/${dbConfig.database}?authSource=${dbConfig.authSource}`;
+      }
     } else {
-      mongodb_uri = `mongodb://${host}:${dbConfig.port}/${dbConfig.database}${sslParam ? '?' + sslParam.substring(1) : ''}`;
+      if (isCosmosDB) {
+        mongodb_uri = `mongodb://${host}:${dbConfig.port}/${dbConfig.database}?${cosmosParams}`;
+      } else {
+        mongodb_uri = `mongodb://${host}:${dbConfig.port}/${dbConfig.database}`;
+      }
     }
 
     logger.info(`Connecting to MongoDB: ${host}:${dbConfig.port}/${dbConfig.database}`);
