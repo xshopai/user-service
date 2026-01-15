@@ -25,8 +25,8 @@ app.use(traceContextMiddleware); // Add trace context middleware first
 app.use(express.json());
 app.use(cookieParser());
 
-// Connect to database
-await connectDB();
+// Track database connection state
+let isDbConnected = false;
 
 // Routes
 app.use('', homeRoutes);
@@ -40,8 +40,12 @@ app.use(errorHandler);
 const PORT = config.service.port;
 const HOST = config.service.host;
 
-app.listen(PORT, HOST, () => {
-  logger.info(`User service running on ${HOST}:${PORT} in ${config.service.nodeEnv} mode`, {
+// IMPORTANT: Start HTTP server FIRST, then connect to database
+// This is required because Dapr sidecar waits for the app to listen on the app port
+// before it becomes ready. If we wait for DB connection (which needs Dapr for secrets),
+// we create a deadlock: app waits for Dapr -> Dapr waits for app
+app.listen(PORT, HOST, async () => {
+  logger.info(`User service HTTP server started on ${HOST}:${PORT} in ${config.service.nodeEnv} mode`, {
     service: config.service.name,
     version: config.service.version,
     dapr: {
@@ -50,7 +54,22 @@ app.listen(PORT, HOST, () => {
       httpPort: config.dapr.httpPort,
     },
   });
+
+  // Now that the server is listening, Dapr sidecar will become ready
+  // and we can connect to the database (which may require Dapr for secrets)
+  try {
+    await connectDB();
+    isDbConnected = true;
+    logger.info('Database connected after server start');
+  } catch (error) {
+    logger.error('Failed to connect to database after server start', { error: error.message });
+    // Don't exit - the server is running and health endpoints work
+    // The readiness check will fail until DB connects
+  }
 });
+
+// Export database connection state for health checks
+export { isDbConnected };
 
 // Graceful shutdown
 const gracefulShutdown = async (signal) => {
