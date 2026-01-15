@@ -13,9 +13,9 @@ class SecretManager {
   constructor() {
     this.daprHost = config.dapr.host;
     this.daprPort = config.dapr.httpPort;
-    // Component name is generic - actual implementation (local file, Azure Key Vault, AWS Secrets Manager)
-    // is determined by the Dapr component YAML configuration, not by code
-    this.secretStoreName = 'secret-store';
+    // Component name is configurable - defaults to 'secret-store' for local dev
+    // Azure Container Apps uses 'secretstore' (no hyphen)
+    this.secretStoreName = process.env.DAPR_SECRET_STORE_NAME || 'secret-store';
 
     logger.info('Secret manager initialized', {
       event: 'secret_manager_init',
