@@ -14,7 +14,6 @@ class SecretManager {
     this.daprHost = config.dapr.host;
     this.daprPort = config.dapr.httpPort;
     // Component name is configurable - defaults to 'secret-store' for local dev
-    // Azure Container Apps uses 'secretstore' (no hyphen)
     this.secretStoreName = process.env.DAPR_SECRET_STORE_NAME || 'secret-store';
 
     logger.info('Secret manager initialized', {
