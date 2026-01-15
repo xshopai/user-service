@@ -3,10 +3,10 @@ import { health, readiness, liveness, metrics } from '../controllers/operational
 
 const router = express.Router();
 
-// Health check endpoints
-router.get('/health', health);
-router.get('/readiness', readiness);
-router.get('/liveness', liveness);
-router.get('/metrics', metrics);
+// Health check endpoints - simplified
+router.get('/health', health);        // Basic health check (always returns 200)
+router.get('/readiness', readiness);  // Readiness probe (checks DB connectivity)
+router.get('/liveness', liveness);    // Liveness probe (basic server check)
+router.get('/metrics', metrics);      // System metrics
 
 export default router;
