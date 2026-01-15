@@ -35,14 +35,20 @@ class SecretManager {
         daprPort: this.daprPort,
       });
 
-      const response = await client.secret.get(this.secretStoreName, secretName);
+      // Azure Key Vault doesn't support underscores in secret names
+      // Convert underscores to hyphens for Key Vault compatibility
+      const keyVaultSecretName = secretName.replace(/_/g, '-');
+
+      const response = await client.secret.get(this.secretStoreName, keyVaultSecretName);
 
       // Dapr returns an object like { secretName: 'value' }
-      if (response && secretName in response) {
-        const value = response[secretName];
+      // Use the Key Vault secret name (with hyphens) to access the response
+      if (response && keyVaultSecretName in response) {
+        const value = response[keyVaultSecretName];
         logger.debug('Retrieved secret from Dapr', {
           event: 'secret_retrieved',
           secretName,
+          keyVaultSecretName,
           source: 'dapr',
           store: this.secretStoreName,
         });
@@ -52,6 +58,7 @@ class SecretManager {
       logger.error('Secret not found in Dapr store', {
         event: 'secret_not_found',
         secretName,
+        keyVaultSecretName,
         store: this.secretStoreName,
       });
       return null;
@@ -59,6 +66,7 @@ class SecretManager {
       logger.error(`Failed to get secret from Dapr: ${error.message}`, {
         event: 'secret_retrieval_error',
         secretName,
+        keyVaultSecretName: secretName.replace(/_/g, '-'),
         error: error.message,
         store: this.secretStoreName,
       });
