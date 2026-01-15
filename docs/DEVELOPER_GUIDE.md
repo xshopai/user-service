@@ -92,7 +92,7 @@ npm run dev
 ```
 
 This starts:
-- User service on port **1002**
+- User service on port **8002**
 - Dapr sidecar on port **3502**
 - Auto-reload with nodemon
 
@@ -228,7 +228,7 @@ Open Pull Request on GitHub.
       "program": "${workspaceFolder}/src/server.js",
       "env": {
         "NODE_ENV": "development",
-        "PORT": "1002"
+        "PORT": "8002"
       }
     }
   ]
@@ -239,7 +239,7 @@ Open Pull Request on GitHub.
 
 ```bash
 # Start Dapr with debug mode
-dapr run --app-id user-service --app-port 1002 --dapr-http-port 3502 \
+dapr run --app-id user-service --app-port 8002 --dapr-http-port 3502 \
   --log-level debug -- node --inspect src/server.js
 ```
 
@@ -302,10 +302,10 @@ mongosh mongodb://localhost:27018/user_service_db
 
 ```bash
 # Health check
-curl http://localhost:1002/health
+curl http://localhost:8002/health
 
 # Create user
-curl -X POST http://localhost:1002/api/users \
+curl -X POST http://localhost:8002/api/users \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","firstName":"Test","lastName":"User"}'
 
@@ -320,9 +320,9 @@ curl http://localhost:3502/v1.0/invoke/user-service/method/api/health
 **Problem**: Port already in use
 
 ```bash
-# Find process using port 1002
-lsof -i :1002        # Linux/Mac
-netstat -ano | findstr :1002  # Windows
+# Find process using port 8002
+lsof -i :8002        # Linux/Mac
+netstat -ano | findstr :8002  # Windows
 
 # Kill process
 kill -9 <PID>        # Linux/Mac

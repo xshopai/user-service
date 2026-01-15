@@ -66,7 +66,7 @@ npm run dev
 **6. Verify**
 ```bash
 # Check health
-curl http://localhost:1002/health
+curl http://localhost:8002/health
 
 # Should return: {"status":"UP","service":"user-service"...}
 
@@ -89,7 +89,7 @@ curl http://localhost:3502/v1.0/invoke/user-service/method/health
 ```bash
 # Service
 NODE_ENV=development              # Environment: development, production, test
-PORT=1002                         # HTTP server port
+PORT=8002                         # HTTP server port
 
 # Security
 JWT_SECRET=your-secret-key        # JWT signing secret (32+ characters)

@@ -147,7 +147,7 @@ resource appService 'Microsoft.Web/sites@2023-12-01' = {
         }
         {
           name: 'PORT'
-          value: '1002'
+          value: '8002'
         }
         {
           name: 'NAME'

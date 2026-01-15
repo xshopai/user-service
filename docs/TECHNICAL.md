@@ -985,7 +985,7 @@ GET /live
 livenessProbe:
   httpGet:
     path: /live
-    port: 1002
+    port: 8002
   initialDelaySeconds: 30
   periodSeconds: 10
   failureThreshold: 3
@@ -993,7 +993,7 @@ livenessProbe:
 readinessProbe:
   httpGet:
     path: /ready
-    port: 1002
+    port: 8002
   initialDelaySeconds: 10
   periodSeconds: 5
   failureThreshold: 3

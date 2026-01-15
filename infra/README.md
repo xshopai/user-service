@@ -73,7 +73,7 @@ Deployment is automated via GitHub Actions. See `.github/workflows/deploy-infra.
 The following environment variables are automatically configured:
 
 - `NODE_ENV`: production/development
-- `PORT`: 1002
+- `PORT`: 8002
 - `MONGODB_URI`: Cosmos DB connection string
 - `DAPR_HOST`: localhost
 - `DAPR_HTTP_PORT`: 3500

@@ -2,7 +2,7 @@
 
 **Service**: User management microservice for xshopai platform  
 **Stack**: Node.js 18+, Express 5.1.0, MongoDB 8.18.0, Mongoose 8.18.0  
-**Port**: 1002 | **Dapr HTTP**: 3502 | **Dapr gRPC**: 50003  
+**Port**: 8002 | **Dapr HTTP**: 3502 | **Dapr gRPC**: 50003  
 **Pattern**: Pure Publisher (Dapr Pub/Sub → RabbitMQ)
 
 ## Architecture at a Glance
@@ -175,7 +175,7 @@ const user = await User.findById(userId).select('-password');
 **Non-sensitive config** (`src/core/config.js`):
 ```javascript
 import config from '../core/config.js';
-const port = config.service.port;              // 1002
+const port = config.service.port;              // 8002
 const daprPort = config.dapr.httpPort;         // 3502
 const logLevel = config.logging.level;         // 'debug'
 ```
@@ -190,7 +190,7 @@ const jwtConfig = await getJwtConfig();        // { secret, expire }
 
 **Environment variables** (`.env`):
 ```env
-PORT=1002
+PORT=8002
 DAPR_HTTP_PORT=3502
 DAPR_PUBSUB_NAME=user-pubsub
 MONGODB_HOST=localhost
@@ -316,20 +316,20 @@ docker-compose -f docker-compose.infrastructure.yml up -d
 - "Debug User Service (with Dapr)" - full stack
 
 **`.vscode/tasks.json`** has:
-- "Kill Port 1002" - cleanup before debug
+- "Kill Port 8002" - cleanup before debug
 - "Start Dapr Sidecar" - manual Dapr start
 - "Stop Dapr Sidecar" - cleanup after debug
 
 ### API testing
 ```bash
 # Health check
-curl http://localhost:1002/api/health
+curl http://localhost:8002/api/health
 
 # Via Dapr
 curl http://localhost:3502/v1.0/invoke/user-service/method/api/health
 
 # Create user
-curl -X POST http://localhost:1002/api/users \
+curl -X POST http://localhost:8002/api/users \
   -H "Content-Type: application/json" \
   -d '{"email":"test@example.com","password":"SecurePass123","firstName":"John"}'
 ```
@@ -832,7 +832,7 @@ const userSchema = new mongoose.Schema({
 
 ```env
 # Server
-PORT=1002
+PORT=8002
 NODE_ENV=development
 
 # MongoDB
@@ -1021,7 +1021,7 @@ GET / metrics; // Prometheus metrics
 
 ```bash
 docker build -t user-service:latest .
-docker run -p 1002:1002 --env-file .env user-service:latest
+docker run -p 8002:8002 --env-file .env user-service:latest
 ```
 
 ### Local Development
@@ -1183,10 +1183,10 @@ services:
       context: .
       dockerfile: Dockerfile.api
     ports:
-      - '1002:1002'
+      - '8002:8002'
     environment:
       - NODE_ENV=development
-      - PORT=1002
+      - PORT=8002
       - MONGODB_HOST=mongodb
       - MONGODB_PORT=27017
       - MONGODB_DB_NAME=user-service-db
@@ -1201,7 +1201,7 @@ services:
     networks:
       - xshopai-network
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:1002/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:8002/health']
       interval: 30s
       timeout: 10s
       retries: 3
@@ -1215,7 +1215,7 @@ services:
         '-app-id',
         'user-service',
         '-app-port',
-        '1002',
+        '8002',
         '-dapr-http-port',
         '3500',
         '-components-path',
@@ -1273,7 +1273,7 @@ Create `.env` file:
 
 ```env
 # Server
-PORT=1002
+PORT=8002
 NODE_ENV=development
 
 # MongoDB
@@ -1304,7 +1304,7 @@ docker run -d -p 27017:27017 --name mongodb mongo:8.0
 docker run -d -p 5672:5672 -p 15672:15672 --name rabbitmq rabbitmq:3-management
 
 # Start Dapr sidecar (separate terminal)
-dapr run --app-id user-service --app-port 1002 --dapr-http-port 3500 --components-path ./components
+dapr run --app-id user-service --app-port 8002 --dapr-http-port 3500 --components-path ./components
 ```
 
 ### 4. Run User Service
@@ -1316,10 +1316,10 @@ npm run dev  # Starts with nodemon (auto-reload)
 ### 5. Verify Setup
 
 ```bash
-curl http://localhost:1002/health
+curl http://localhost:8002/health
 # Expected: { "status": "healthy", ... }
 
-curl http://localhost:1002/version
+curl http://localhost:8002/version
 # Expected: { "version": "1.0.0", ... }
 ```
 

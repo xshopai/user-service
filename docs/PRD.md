@@ -283,7 +283,7 @@ The service publishes the following events via Dapr Pub/Sub:
 
 ### 4.1 Base URL
 
-- **Local Development**: `http://localhost:1002`
+- **Local Development**: `http://localhost:8002`
 - **Production**: `https://api.xshopai/user-service`
 
 ### 4.2 API Endpoints
@@ -1068,7 +1068,7 @@ All errors follow a standardized format:
 
 ```env
 # Server
-PORT=1002
+PORT=8002
 NODE_ENV=production
 
 # MongoDB
@@ -1108,7 +1108,7 @@ WORKDIR /app
 COPY package*.json ./
 RUN npm ci --only=production
 COPY . .
-EXPOSE 1002
+EXPOSE 8002
 CMD ["node", "src/server.js"]
 ```
 
@@ -1120,7 +1120,7 @@ services:
   user-service:
     build: .
     ports:
-      - '1002:1002'
+      - '8002:8002'
     environment:
       - NODE_ENV=production
       - MONGODB_HOST=mongodb
@@ -1129,7 +1129,7 @@ services:
       - dapr-sidecar
       - rabbitmq
     healthcheck:
-      test: ['CMD', 'curl', '-f', 'http://localhost:1002/health']
+      test: ['CMD', 'curl', '-f', 'http://localhost:8002/health']
       interval: 10s
       timeout: 3s
       retries: 3
@@ -1142,7 +1142,7 @@ services:
         '-app-id',
         'user-service',
         '-app-port',
-        '1002',
+        '8002',
         '-dapr-http-port',
         '3500',
         '-components-path',
@@ -1175,7 +1175,7 @@ spec:
         - name: user-service
           image: xshopai/user-service:1.0.0
           ports:
-            - containerPort: 1002
+            - containerPort: 8002
           env:
             - name: NODE_ENV
               value: 'production'
@@ -1194,13 +1194,13 @@ spec:
           livenessProbe:
             httpGet:
               path: /health/live
-              port: 1002
+              port: 8002
             initialDelaySeconds: 15
             periodSeconds: 10
           readinessProbe:
             httpGet:
               path: /health/ready
-              port: 1002
+              port: 8002
             initialDelaySeconds: 10
             periodSeconds: 5
 ```
