@@ -30,10 +30,10 @@ services:
     container_name: user-service
     restart: unless-stopped
     ports:
-      - "1001:1001"
+      - "8002:8002"
     environment:
       - NODE_ENV=production
-      - PORT=1001
+      - PORT=8002
       - MONGODB_URI=mongodb://admin:admin123@user-mongodb:27017/user_service_db?authSource=admin
       - RABBITMQ_URL=amqp://admin:admin123@rabbitmq-message-broker:5672
       - OTEL_EXPORTER_OTLP_ENDPOINT=http://otel-collector:4318
@@ -43,7 +43,7 @@ services:
     networks:
       - xshopai-network
     healthcheck:
-      test: ["CMD", "node", "-e", "require('http').get('http://localhost:1001/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
+      test: ["CMD", "node", "-e", "require('http').get('http://localhost:8002/health', (r) => process.exit(r.statusCode === 200 ? 0 : 1))"]
       interval: 30s
       timeout: 10s
       retries: 3
