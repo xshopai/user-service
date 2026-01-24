@@ -430,7 +430,7 @@ The system shall provide an API endpoint for admins to list all users.
 
 | Aspect     | Specification             |
 | ---------- | ------------------------- |
-| Endpoint   | `GET /admin/users`        |
+| Endpoint   | `GET /api/admin/users`    |
 | Pagination | Query params: page, limit |
 | Default    | page=1, limit=20          |
 | Auth       | Admin JWT required        |
@@ -450,10 +450,10 @@ The system shall provide an API endpoint to get user statistics.
 
 **Functional Details:**
 
-| Aspect   | Specification            |
-| -------- | ------------------------ |
-| Endpoint | `GET /admin/users/stats` |
-| Auth     | Admin JWT required       |
+| Aspect   | Specification                |
+| -------- | ---------------------------- |
+| Endpoint | `GET /api/admin/users/stats` |
+| Auth     | Admin JWT required           |
 
 **Acceptance Criteria:**
 
@@ -470,10 +470,10 @@ The system shall provide an API endpoint for admins to update any user.
 
 **Functional Details:**
 
-| Aspect   | Specification                 |
-| -------- | ----------------------------- |
-| Endpoint | `PATCH /admin/users/{userId}` |
-| Auth     | Admin JWT required            |
+| Aspect   | Specification                     |
+| -------- | --------------------------------- |
+| Endpoint | `PATCH /api/admin/users/{userId}` |
+| Auth     | Admin JWT required                |
 
 **Acceptance Criteria:**
 
@@ -491,10 +491,10 @@ The system shall provide an API endpoint for admins to delete any user.
 
 **Functional Details:**
 
-| Aspect   | Specification                  |
-| -------- | ------------------------------ |
-| Endpoint | `DELETE /admin/users/{userId}` |
-| Auth     | Admin JWT required             |
+| Aspect   | Specification                      |
+| -------- | ---------------------------------- |
+| Endpoint | `DELETE /api/admin/users/{userId}` |
+| Auth     | Admin JWT required                 |
 
 **Acceptance Criteria:**
 

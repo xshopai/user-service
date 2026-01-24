@@ -543,32 +543,32 @@ Database connection is configured via environment variables parsed in MongoDB UR
 | `GET`    | `/version`                         | Service version               | None      |
 | `POST`   | `/users`                           | Create new user               | None      |
 | `GET`    | `/users/findByEmail`               | Find user by email            | None      |
-| `GET`    | `/users`                           | Get authenticated user        | JWT       |
-| `PATCH`  | `/users`                           | Update user profile           | JWT       |
-| `DELETE` | `/users`                           | Delete user account           | JWT       |
-| `GET`    | `/users/addresses`                 | Get all addresses             | JWT       |
-| `POST`   | `/users/addresses`                 | Add new address               | JWT       |
-| `PATCH`  | `/users/addresses/:addressId`      | Update address                | JWT       |
-| `DELETE` | `/users/addresses/:addressId`      | Remove address                | JWT       |
-| `GET`    | `/users/paymentmethods`            | Get all payment methods       | JWT       |
-| `POST`   | `/users/paymentmethods`            | Add payment method            | JWT       |
-| `PATCH`  | `/users/paymentmethods/:paymentId` | Update payment method         | JWT       |
-| `DELETE` | `/users/paymentmethods/:paymentId` | Remove payment method         | JWT       |
-| `GET`    | `/users/wishlist`                  | Get wishlist                  | JWT       |
-| `POST`   | `/users/wishlist`                  | Add item to wishlist          | JWT       |
-| `PATCH`  | `/users/wishlist/:wishlistId`      | Update wishlist item          | JWT       |
-| `DELETE` | `/users/wishlist/:wishlistId`      | Remove from wishlist          | JWT       |
-| `GET`    | `/admin/users`                     | List all users (paginated)    | Admin JWT |
-| `GET`    | `/admin/users/stats`               | Get user statistics           | Admin JWT |
-| `GET`    | `/admin/users/list/recent`         | Get recently registered users | Admin JWT |
-| `GET`    | `/admin/users/:id`                 | Get user by ID                | Admin JWT |
-| `PATCH`  | `/admin/users/:id`                 | Update user (admin)           | Admin JWT |
-| `DELETE` | `/admin/users/:id`                 | Delete user (admin)           | Admin JWT |
+| `GET`    | `/users`                           | Get authenticated user        | User JWT  |
+| `PATCH`  | `/users`                           | Update user profile           | User JWT  |
+| `DELETE` | `/users`                           | Delete user account           | User JWT  |
+| `GET`    | `/users/addresses`                 | Get all addresses             | User JWT  |
+| `POST`   | `/users/addresses`                 | Add new address               | User JWT  |
+| `PATCH`  | `/users/addresses/:addressId`      | Update address                | User JWT  |
+| `DELETE` | `/users/addresses/:addressId`      | Remove address                | User JWT  |
+| `GET`    | `/users/paymentmethods`            | Get all payment methods       | User JWT  |
+| `POST`   | `/users/paymentmethods`            | Add payment method            | User JWT  |
+| `PATCH`  | `/users/paymentmethods/:paymentId` | Update payment method         | User JWT  |
+| `DELETE` | `/users/paymentmethods/:paymentId` | Remove payment method         | User JWT  |
+| `GET`    | `/users/wishlist`                  | Get wishlist                  | User JWT  |
+| `POST`   | `/users/wishlist`                  | Add item to wishlist          | User JWT  |
+| `PATCH`  | `/users/wishlist/:wishlistId`      | Update wishlist item          | User JWT  |
+| `DELETE` | `/users/wishlist/:wishlistId`      | Remove from wishlist          | User JWT  |
+| `GET`    | `/api/admin/users`                 | List all users (paginated)    | Admin JWT |
+| `GET`    | `/api/admin/users/stats`           | Get user statistics           | Admin JWT |
+| `GET`    | `/api/admin/users/list/recent`     | Get recently registered users | Admin JWT |
+| `GET`    | `/api/admin/users/:id`             | Get user by ID                | Admin JWT |
+| `PATCH`  | `/api/admin/users/:id`             | Update user (admin)           | Admin JWT |
+| `DELETE` | `/api/admin/users/:id`             | Delete user (admin)           | Admin JWT |
 
 **Authentication Types:**
 
 - **None**: Public endpoints (health checks, registration)
-- **JWT**: Authenticated user operations via JWT from auth-service
+- **User JWT**: Authenticated user operations via JWT (any logged-in user)
 - **Admin JWT**: Admin operations requiring `role: admin` in JWT
 
 ### 4.2 Request/Response Specifications
