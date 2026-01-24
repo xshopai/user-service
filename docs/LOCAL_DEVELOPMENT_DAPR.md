@@ -96,7 +96,8 @@ ORDER_SERVICE_TOKEN=svc-order-service-4ff5876fc86cc45a18d88e5d
 WEB_BFF_TOKEN=svc-web-bff-4ff5876fc86cc45a18d88e5d
 ```
 
-> **Note**: 
+> **Note**:
+>
 > - When using Dapr mode, database credentials are retrieved from the Dapr secret store (configured in `.dapr/secrets.json`)
 > - The Dapr sidecar handles RabbitMQ connections using the configuration in `.dapr/components/event-bus.yaml`
 
