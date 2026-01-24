@@ -577,11 +577,11 @@ The system shall publish events via Dapr Pub/Sub after user lifecycle operations
 
 ### 6.4 Observability
 
-| Requirement                                         | Priority |
-| --------------------------------------------------- | -------- |
-| Health check endpoints (`/health`, `/health/ready`) | Critical |
-| Structured JSON logging with correlation IDs        | High     |
-| Log user operations with before/after values        | High     |
-| Prometheus metrics endpoint (`/metrics`)            | High     |
+| Requirement                                                         | Priority |
+| ------------------------------------------------------------------- | -------- |
+| Health check endpoints (`/health`, `/health/ready`, `/health/live`) | Critical |
+| Structured JSON logging with correlation IDs                        | High     |
+| Log user operations with before/after values                        | High     |
+| Prometheus metrics endpoint (`/metrics`)                            | High     |
 
 ---

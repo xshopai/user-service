@@ -55,12 +55,15 @@ This will install all dependencies defined in `package.json`, including:
 ### Option A: Using Docker Compose (Recommended)
 
 ```bash
-# Create the Docker network (first time only)
-docker network create xshopai-network
+# Create the Docker network (only needed once across all xshopai services)
+# This command will fail silently if the network already exists
+docker network create xshopai-network 2>/dev/null || true
 
 # Start MongoDB using docker-compose
 docker-compose up -d user-mongodb
 ```
+
+> **Note:** If you see "network with name xshopai-network already exists", that's fine - it means the network was already created by another service.
 
 This uses the pre-configured settings from `docker-compose.yml`:
 
@@ -139,46 +142,12 @@ docker ps | grep rabbitmq
 
 ## Step 5: Configure Environment Variables
 
-Copy the example environment file and edit with your local settings:
+Environment configuration depends on your development mode. Continue to one of the following guides:
 
-```bash
-# Copy example env file
-cp .env.example .env
-```
+- **[Local Development (without Dapr)](LOCAL_DEVELOPMENT.md)** - Uses `.env.local` template with direct MongoDB/RabbitMQ connections
+- **[Local Development with Dapr](LOCAL_DEVELOPMENT_DAPR.md)** - Uses `.env.dapr` template with Dapr sidecar for messaging
 
-Edit the `.env` file with your local settings:
-
-```bash
-# Application
-NODE_ENV=development
-PORT=8002
-NAME=user-service
-VERSION=1.0.0
-
-# Logging
-LOG_LEVEL=debug
-LOG_FORMAT=console
-
-# MongoDB Connection
-MONGODB_HOST=localhost
-MONGODB_PORT=27018
-MONGODB_USERNAME=admin
-MONGODB_PASSWORD=admin123
-MONGODB_DATABASE=user_service_db
-MONGODB_AUTH_SOURCE=admin
-
-# Dapr Configuration
-DAPR_HOST=localhost
-DAPR_HTTP_PORT=3502
-DAPR_GRPC_PORT=50002
-DAPR_APP_ID=user-service
-DAPR_PUBSUB_NAME=event-pubsub
-
-# JWT Configuration
-JWT_SECRET=8tDBDMcpxroHoHjXjk8xp/uAn8rzD4y8ZZremFkC4gI=
-JWT_ALGORITHM=HS256
-JWT_EXPIRES_IN=24h
-```
+Each guide includes the specific environment setup for that mode.
 
 ---
 

@@ -21,22 +21,14 @@ For production-like local development with Dapr, see [Local Development with Dap
 
 ## Step 1: Configure Environment for Non-Dapr Mode
 
-The repository includes pre-configured environment files:
-
-- **`.env.local`** - For local development without Dapr (direct MongoDB connection)
-- **`.env.dapr`** - For local development with Dapr sidecar
-
 Copy the local environment template to `.env`:
 
 ```bash
-# On Linux/Mac:
+# On Linux / Mac / Bash:
 cp .env.local .env
 
 # On Windows (PowerShell):
 Copy-Item .env.local .env
-
-# On Windows (Command Prompt):
-copy .env.local .env
 ```
 
 The `.env.local` file contains:
@@ -82,7 +74,13 @@ npm run dev
 
 # Or for production mode
 npm start
+
+# Or with debugger attached
+npm run debug
 ```
+
+> **Note**: The default `npm run dev` and `npm start` commands run without Dapr.
+> For Dapr mode, use `npm run dev:dapr` or `npm run start:dapr` (see [LOCAL_DEVELOPMENT_DAPR.md](LOCAL_DEVELOPMENT_DAPR.md)).
 
 Expected output:
 
@@ -99,11 +97,14 @@ Expected output:
 ### Health Check
 
 ```bash
-# Liveness check
+# Basic health check
 curl http://localhost:8002/health
 
 # Readiness check (verifies database connection)
 curl http://localhost:8002/health/ready
+
+# Liveness check
+curl http://localhost:8002/health/live
 ```
 
 ---

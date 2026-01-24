@@ -50,22 +50,14 @@ You should see these containers:
 
 ## Step 2: Configure Environment for Dapr Mode
 
-The repository includes pre-configured environment files:
-
-- **`.env.local`** - For local development without Dapr
-- **`.env.dapr`** - For local development with Dapr sidecar (this guide)
-
 Copy the Dapr environment template to `.env`:
 
 ```bash
-# On Linux/Mac:
+# On Linux / Mac / Bash:
 cp .env.dapr .env
 
 # On Windows (PowerShell):
 Copy-Item .env.dapr .env
-
-# On Windows (Command Prompt):
-copy .env.dapr .env
 ```
 
 The `.env.dapr` file contains:
@@ -138,34 +130,27 @@ If using Dapr secret store, create `.dapr/secrets.json`:
 
 ## Step 5: Start Service with Dapr Sidecar
 
-### Option A: Using dapr run command
+### Option A: Using npm scripts (Recommended)
 
 ```bash
-dapr run \
-  --app-id user-service \
-  --app-port 8002 \
-  --dapr-http-port 3502 \
-  --dapr-grpc-port 50002 \
-  --resources-path ./.dapr/components \
-  --config ./.dapr/config.yaml \
-  --log-level warn \
-  -- npm run dev
+# Start the development server with Dapr and hot reload
+npm run dev:dapr
+
+# Or for production mode with Dapr
+npm run start:dapr
+
+# Or with debugger attached
+npm run debug:dapr
 ```
 
 ### Option B: Using convenience scripts
 
 ```bash
-# On Linux/Mac:
+# On Linux / Mac / Bash:
 ./run.sh
 
 # On Windows (PowerShell):
 .\run.ps1
-
-# On Windows (Command Prompt):
-powershell -ExecutionPolicy Bypass -File run.ps1
-
-# On Windows (Git Bash):
-./run.sh
 ```
 
 ---
