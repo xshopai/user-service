@@ -156,8 +156,18 @@ export const updateUser = asyncHandler(async (req, res, next) => {
  */
 export const deleteUser = asyncHandler(async (req, res, next) => {
   try {
+    // Get user info before deletion for event payload
+    const user = await User.findById(req.user._id).select('email');
+    const userId = req.user._id.toString();
+    const userEmail = user?.email;
+
     await userService.deleteUser(req.user._id);
-    logger.info('User deleted own account', { userId: req.user._id });
+
+    // Publish user.deleted event (PRD 4.3)
+    const traceId = req.traceId;
+    await publishUserDeleted(userId, userEmail, traceId, null, 'user_request');
+
+    logger.info('User deleted own account', { userId: req.user._id, traceId });
     res.status(204).send();
   } catch (err) {
     next(err);

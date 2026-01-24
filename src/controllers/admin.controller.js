@@ -2,7 +2,12 @@ import User from '../models/user.model.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 import * as userService from '../services/user.service.js';
 import logger from '../core/logger.js';
-import { publishUserUpdated, publishUserDeactivated, publishUserReactivated } from '../events/publisher.js';
+import {
+  publishUserUpdated,
+  publishUserDeleted,
+  publishUserDeactivated,
+  publishUserReactivated,
+} from '../events/publisher.js';
 import ErrorResponse from '../core/errors.js';
 
 /**
@@ -322,7 +327,24 @@ export const updateUser = asyncHandler(async (req, res, next) => {
  */
 export const deleteUser = asyncHandler(async (req, res, next) => {
   try {
+    // Get user info before deletion for event payload
+    const user = await User.findById(req.params.id).select('email');
+    const userId = req.params.id;
+    const userEmail = user?.email;
+    const adminId = req.user?._id?.toString();
+
     await userService.deleteUser(req.params.id);
+
+    // Publish user.deleted event (PRD 4.16)
+    const traceId = req.traceId;
+    await publishUserDeleted(userId, userEmail, traceId, adminId, 'admin_action');
+
+    logger.info('User deleted by admin', {
+      targetUserId: userId,
+      adminId,
+      traceId,
+    });
+
     res.status(204).send();
   } catch (err) {
     next(err);
