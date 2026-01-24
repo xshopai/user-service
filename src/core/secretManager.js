@@ -24,10 +24,10 @@ class SecretManager {
 
   /**
    * Get a secret value from Dapr secret store
-   * 
+   *
    * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
    * Both local secrets.json and Azure Key Vault use the same naming convention.
-   * 
+   *
    * @param {string} secretName - Name of the secret to retrieve (use hyphens, e.g., 'mongodb-host')
    * @returns {Promise<string|null>} Secret value or null if not found
    */
@@ -71,38 +71,78 @@ class SecretManager {
 
   /**
    * Get database configuration from secrets or environment variables
-   * 
-   * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
-   * Both local secrets.json and Azure Key Vault use the same naming convention.
-   * 
+   *
+   * Supports two modes:
+   * 1. Dapr mode: Gets individual secrets from Dapr secret store
+   * 2. Non-Dapr mode: Falls back to DATABASE_URL env var for local dev without Dapr
+   *
+   * DATABASE_URL format: mongodb://username:password@host:port/database?authSource=admin
+   *
    * @returns {Promise<Object>} Database connection parameters
    */
   async getDatabaseConfig() {
-    const [host, port, username, password, database, authSource] = await Promise.all([
-      this.getSecret('mongodb-host'),
-      this.getSecret('mongodb-port'),
-      this.getSecret('mongo-initdb-root-username'),
-      this.getSecret('mongo-initdb-root-password'),
-      this.getSecret('mongo-initdb-database'),
-      this.getSecret('mongodb-auth-source'),
-    ]);
+    // Check for DATABASE_URL env var first (non-Dapr local dev mode)
+    const databaseUrl = process.env.DATABASE_URL;
+    if (databaseUrl) {
+      logger.info('Using DATABASE_URL environment variable (non-Dapr mode)');
+      return this._parseDatabaseUrl(databaseUrl);
+    }
 
-    return {
-      host: host || '127.0.0.1',
-      port: parseInt(port || '27018', 10),
-      username: username || 'admin',
-      password: password || 'admin123',
-      database: database || 'user_service_db',
-      authSource: authSource || 'admin',
-    };
+    // Dapr mode: Get individual secrets from secret store
+    try {
+      const [host, port, username, password, database, authSource] = await Promise.all([
+        this.getSecret('mongodb-host'),
+        this.getSecret('mongodb-port'),
+        this.getSecret('mongo-initdb-root-username'),
+        this.getSecret('mongo-initdb-root-password'),
+        this.getSecret('mongo-initdb-database'),
+        this.getSecret('mongodb-auth-source'),
+      ]);
+
+      return {
+        host: host || '127.0.0.1',
+        port: parseInt(port || '27018', 10),
+        username: username || 'admin',
+        password: password || 'admin123',
+        database: database || 'user_service_db',
+        authSource: authSource || 'admin',
+      };
+    } catch (error) {
+      logger.error('Failed to get database config from Dapr. Set DATABASE_URL env var for non-Dapr mode.');
+      throw error;
+    }
+  }
+
+  /**
+   * Parse MongoDB connection URL into config object
+   * @param {string} url - MongoDB connection URL
+   * @returns {Object} Database connection parameters
+   */
+  _parseDatabaseUrl(url) {
+    try {
+      const parsed = new URL(url);
+      const authSource = parsed.searchParams.get('authSource') || 'admin';
+
+      return {
+        host: parsed.hostname || '127.0.0.1',
+        port: parseInt(parsed.port || '27018', 10),
+        username: parsed.username || '',
+        password: parsed.password || '',
+        database: parsed.pathname.replace('/', '') || 'user_service_db',
+        authSource,
+      };
+    } catch (error) {
+      logger.error(`Invalid DATABASE_URL format: ${error.message}`);
+      throw new Error('Invalid DATABASE_URL format. Expected: mongodb://user:pass@host:port/database?authSource=admin');
+    }
   }
 
   /**
    * Get JWT configuration from secrets
    * Only jwt-secret is truly secret - algorithm and expiration are just config.
-   * 
+   *
    * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
-   * 
+   *
    * @returns {Promise<Object>} JWT configuration parameters
    */
   async getJwtConfig() {

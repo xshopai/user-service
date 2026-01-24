@@ -10,6 +10,8 @@ import {
   publishUserUpdated,
   publishUserLoggedIn,
   publishUserLoggedOut,
+  publishUserDeactivated,
+  publishUserReactivated,
 } from '../events/publisher.js';
 
 // @desc    Create a new user
@@ -105,6 +107,10 @@ export const getUser = asyncHandler(async (req, res, next) => {
 // @access  Private
 export const updateUser = asyncHandler(async (req, res, next) => {
   try {
+    // Check if isActive is being changed (for deactivate/reactivate events)
+    const currentUser = await User.findById(req.user._id).select('isActive');
+    const wasActive = currentUser?.isActive;
+
     const result = await userService.updateUser(req.user._id, req.body, { isAdmin: false });
 
     // Extract client IP address
@@ -119,9 +125,23 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     // Extract User-Agent string
     const userAgent = req.headers['user-agent'] || 'unknown';
 
-    // Publish user.updated event to message broker (self-update)
     const traceId = req.traceId;
-    await publishUserUpdated(result, traceId, req.user._id.toString(), clientIP, userAgent);
+
+    // Check if isActive status changed
+    if ('isActive' in req.body && wasActive !== req.body.isActive) {
+      if (req.body.isActive === false) {
+        // Account deactivated
+        await publishUserDeactivated(result._id?.toString() || req.user._id.toString(), traceId, null, 'user_request');
+        logger.info('Account deactivated via profile update', { userId: req.user._id, traceId });
+      } else if (req.body.isActive === true) {
+        // Account reactivated
+        await publishUserReactivated(result._id?.toString() || req.user._id.toString(), traceId, null);
+        logger.info('Account reactivated via profile update', { userId: req.user._id, traceId });
+      }
+    } else {
+      // Regular profile update - publish user.updated event
+      await publishUserUpdated(result, traceId, req.user._id.toString(), clientIP, userAgent);
+    }
 
     res.json(result);
   } catch (err) {
@@ -181,6 +201,16 @@ export const deactivateAccount = asyncHandler(async (req, res, next) => {
     if (!updatedUser) {
       return next(new ErrorResponse('User not found', 404, 'USER_NOT_FOUND'));
     }
+
+    // Publish user.deactivated event (PRD 4.17)
+    const traceId = req.traceId;
+    await publishUserDeactivated(updatedUser._id.toString(), traceId, null, 'user_request');
+
+    logger.info('Account deactivated', {
+      userId: updatedUser._id,
+      traceId: req.traceId,
+    });
+
     res.status(200).json({ message: 'Account deactivated', user: updatedUser });
   } catch (err) {
     next(err);

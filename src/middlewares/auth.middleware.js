@@ -13,6 +13,85 @@ const getJwtSecret = async () => {
   return jwtConfigCache.secret;
 };
 
+// Cache service tokens configuration
+let serviceTokensCache = null;
+
+/**
+ * Get service token configuration from environment.
+ * Used for validating incoming requests from other services.
+ */
+function getServiceTokens() {
+  if (!serviceTokensCache) {
+    serviceTokensCache = {
+      'auth-service': process.env.AUTH_SERVICE_TOKEN,
+      'admin-service': process.env.ADMIN_SERVICE_TOKEN,
+      'order-service': process.env.ORDER_SERVICE_TOKEN,
+      'web-bff': process.env.WEB_BFF_TOKEN,
+    };
+    // Filter out undefined/null values
+    serviceTokensCache = Object.fromEntries(Object.entries(serviceTokensCache).filter(([, v]) => v));
+    logger.info(`Service tokens loaded for ${Object.keys(serviceTokensCache).length} services`);
+  }
+  return serviceTokensCache;
+}
+
+/**
+ * Middleware to validate service-to-service authentication tokens.
+ *
+ * Checks for X-Service-Token header and validates against configured service tokens.
+ * Used for endpoints that receive calls from other services (auth-service, admin-service, etc.)
+ *
+ * Usage:
+ *   router.get('/internal/users/:email', requireServiceToken, getUserByEmail);
+ */
+export async function requireServiceToken(req, res, next) {
+  try {
+    // Extract service token from custom header
+    const serviceToken = req.headers['x-service-token'];
+
+    if (!serviceToken) {
+      logger.warn('Service authentication required: No service token provided', {
+        path: req.path,
+        method: req.method,
+      });
+      return next(new ErrorResponse('Service authentication required: No service token provided', 401));
+    }
+
+    // Validate token against configured service tokens
+    const validTokens = getServiceTokens();
+
+    // Check if token matches any configured service token
+    let matchingService = null;
+    for (const [serviceName, validToken] of Object.entries(validTokens)) {
+      if (serviceToken === validToken) {
+        matchingService = serviceName;
+        break;
+      }
+    }
+
+    if (!matchingService) {
+      logger.warn('Invalid service token provided', {
+        path: req.path,
+        method: req.method,
+      });
+      return next(new ErrorResponse('Invalid service token: Service authentication failed', 401));
+    }
+
+    // Store calling service info for logging/audit
+    req.callingService = matchingService;
+    logger.info(`Service authentication successful: ${matchingService}`, {
+      path: req.path,
+      method: req.method,
+      callingService: matchingService,
+    });
+
+    next();
+  } catch (err) {
+    logger.error('Service authentication error', { error: err.message });
+    return next(new ErrorResponse('Service authentication failed', 500));
+  }
+}
+
 /**
  * Middleware for JWT authentication in the user service.
  * Checks for a JWT in the Authorization header or cookies, verifies it, and attaches user info to req.user.
@@ -41,10 +120,10 @@ export async function requireAuth(req, res, next) {
     let decoded;
     try {
       // Get full JWT config for validation options
-      const jwtConfig = jwtConfigCache || await getJwtConfig();
+      const jwtConfig = jwtConfigCache || (await getJwtConfig());
       decoded = jwt.verify(token, secret, {
         issuer: jwtConfig.issuer,
-        audience: jwtConfig.audience
+        audience: jwtConfig.audience,
       });
     } catch (err) {
       logger.warn('requireAuth: Invalid token', { error: err });
@@ -152,12 +231,12 @@ export async function optionalAuth(req, res, next) {
 
     // Get JWT secret from Dapr secret store
     const secret = await getJwtSecret();
-    const jwtConfig = jwtConfigCache || await getJwtConfig();
+    const jwtConfig = jwtConfigCache || (await getJwtConfig());
 
     try {
       const decoded = jwt.verify(token, secret, {
         issuer: jwtConfig.issuer,
-        audience: jwtConfig.audience
+        audience: jwtConfig.audience,
       });
       req.user = {
         _id: decoded.id,

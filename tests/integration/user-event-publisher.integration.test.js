@@ -4,17 +4,23 @@
  */
 import { describe, test, expect, jest, beforeEach } from '@jest/globals';
 
-// Mock the daprClient from core/dapr.js
+// Mock the @dapr/dapr module
 const mockPublishEvent = jest.fn().mockResolvedValue(undefined);
 
-jest.unstable_mockModule('../../src/core/dapr.js', () => ({
-  daprClient: {
-    publishEvent: mockPublishEvent,
-  },
+jest.unstable_mockModule('@dapr/dapr', () => ({
+  DaprClient: jest.fn().mockImplementation(() => ({
+    pubsub: {
+      publish: mockPublishEvent,
+    },
+  })),
 }));
 
 // Import after mocking
 const userEventPublisher = await import('../../src/events/publisher.js');
+const config = (await import('../../src/core/config.js')).default;
+
+// Get the actual pubsub name from config
+const expectedPubsubName = config.dapr.pubsubName;
 
 describe('User Event Publisher - CloudEvents Compliance', () => {
   beforeEach(() => {
@@ -42,8 +48,8 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
       expect(mockPublishEvent).toHaveBeenCalledTimes(1);
       const [pubsubName, topic, eventData] = mockPublishEvent.mock.calls[0];
 
-      // Validate pub/sub configuration
-      expect(pubsubName).toBe('user-pubsub');
+      // Validate pub/sub configuration (uses configured pubsub name)
+      expect(pubsubName).toBe(expectedPubsubName);
       expect(topic).toBe('user.created');
 
       // Validate CloudEvents schema
@@ -67,7 +73,7 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
       expect(eventData.data.tier).toBe('basic');
 
       // Validate metadata
-      expect(eventData.metadata.correlationId).toBe('test-corr-id-123');
+      expect(eventData.metadata.traceId).toBe('test-corr-id-123');
       expect(eventData.metadata.ipAddress).toBe('192.168.1.1');
       expect(eventData.metadata.userAgent).toBe('Mozilla/5.0');
       expect(eventData.metadata.environment).toBe('development');
@@ -136,13 +142,13 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
         'test-corr-id-456',
         '507f1f77bcf86cd799439012',
         '192.168.1.2',
-        'Chrome/120.0'
+        'Chrome/120.0',
       );
 
       expect(mockPublishEvent).toHaveBeenCalledTimes(1);
       const [pubsubName, topic, eventData] = mockPublishEvent.mock.calls[0];
 
-      expect(pubsubName).toBe('user-pubsub');
+      expect(pubsubName).toBe(expectedPubsubName);
       expect(topic).toBe('user.updated');
       expect(eventData.type).toBe('com.xshopai.user.updated');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');
@@ -159,12 +165,12 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
       expect(mockPublishEvent).toHaveBeenCalledTimes(1);
       const [pubsubName, topic, eventData] = mockPublishEvent.mock.calls[0];
 
-      expect(pubsubName).toBe('user-pubsub');
+      expect(pubsubName).toBe(expectedPubsubName);
       expect(topic).toBe('user.deleted');
       expect(eventData.type).toBe('com.xshopai.user.deleted');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');
       expect(eventData.data.timestamp).toBeDefined();
-      expect(eventData.metadata.correlationId).toBe('test-corr-id-789');
+      expect(eventData.metadata.traceId).toBe('test-corr-id-789');
     });
   });
 
@@ -175,13 +181,13 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
         'user@example.com',
         'test-corr-id-login',
         '10.0.0.1',
-        'Safari/17.0'
+        'Safari/17.0',
       );
 
       expect(mockPublishEvent).toHaveBeenCalledTimes(1);
       const [pubsubName, topic, eventData] = mockPublishEvent.mock.calls[0];
 
-      expect(pubsubName).toBe('user-pubsub');
+      expect(pubsubName).toBe(expectedPubsubName);
       expect(topic).toBe('user.logged_in');
       expect(eventData.type).toBe('com.xshopai.user.logged_in');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');
@@ -197,13 +203,13 @@ describe('User Event Publisher - CloudEvents Compliance', () => {
       await userEventPublisher.publishUserLoggedOut(
         '507f1f77bcf86cd799439011',
         'user@example.com',
-        'test-corr-id-logout'
+        'test-corr-id-logout',
       );
 
       expect(mockPublishEvent).toHaveBeenCalledTimes(1);
       const [pubsubName, topic, eventData] = mockPublishEvent.mock.calls[0];
 
-      expect(pubsubName).toBe('user-pubsub');
+      expect(pubsubName).toBe(expectedPubsubName);
       expect(topic).toBe('user.logged_out');
       expect(eventData.type).toBe('com.xshopai.user.logged_out');
       expect(eventData.data.userId).toBe('507f1f77bcf86cd799439011');

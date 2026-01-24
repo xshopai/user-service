@@ -2,7 +2,7 @@ import User from '../models/user.model.js';
 import asyncHandler from '../middlewares/asyncHandler.js';
 import * as userService from '../services/user.service.js';
 import logger from '../core/logger.js';
-import { publishUserUpdated } from '../events/publisher.js';
+import { publishUserUpdated, publishUserDeactivated, publishUserReactivated } from '../events/publisher.js';
 import ErrorResponse from '../core/errors.js';
 
 /**
@@ -64,7 +64,7 @@ export const getStats = asyncHandler(async (req, res, _next) => {
       User.find({ isActive: { $ne: false } }, 'firstName lastName email roles createdAt')
         .sort({ createdAt: -1 })
         .limit(recentLimit)
-        .lean()
+        .lean(),
     );
   }
 
@@ -76,8 +76,8 @@ export const getStats = asyncHandler(async (req, res, _next) => {
     newUsersLastMonth > 0
       ? (((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100).toFixed(1)
       : newUsersThisMonth > 0
-      ? 100
-      : 0;
+        ? 100
+        : 0;
 
   const stats = {
     total: totalUsers,
@@ -181,7 +181,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
   // Basic validation
   if (!email || !password || !firstName || !lastName) {
     return next(
-      new ErrorResponse('Email, password, first name, and last name are required', 400, 'MISSING_REQUIRED_FIELDS')
+      new ErrorResponse('Email, password, first name, and last name are required', 400, 'MISSING_REQUIRED_FIELDS'),
     );
   }
 
@@ -264,6 +264,10 @@ export const getUser = asyncHandler(async (req, res, next) => {
  */
 export const updateUser = asyncHandler(async (req, res, next) => {
   try {
+    // Check if isActive is being changed (for deactivate/reactivate events)
+    const currentUser = await User.findById(req.params.id).select('isActive');
+    const wasActive = currentUser?.isActive;
+
     const result = await userService.updateUser(req.params.id, req.body, { isAdmin: true });
 
     // Extract client IP address
@@ -278,9 +282,32 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     // Extract User-Agent string
     const userAgent = req.headers['user-agent'] || 'unknown';
 
-    // Publish user.updated event to message broker (admin update)
     const traceId = req.traceId;
-    await publishUserUpdated(result, traceId, req.user?._id?.toString(), clientIP, userAgent);
+    const adminId = req.user?._id?.toString();
+
+    // Check if isActive status changed
+    if ('isActive' in req.body && wasActive !== req.body.isActive) {
+      if (req.body.isActive === false) {
+        // Account deactivated by admin
+        await publishUserDeactivated(req.params.id, traceId, adminId, 'admin_action');
+        logger.info('Account deactivated by admin', {
+          targetUserId: req.params.id,
+          adminId,
+          traceId,
+        });
+      } else if (req.body.isActive === true) {
+        // Account reactivated by admin
+        await publishUserReactivated(req.params.id, traceId, adminId);
+        logger.info('Account reactivated by admin', {
+          targetUserId: req.params.id,
+          adminId,
+          traceId,
+        });
+      }
+    } else {
+      // Regular admin update - publish user.updated event
+      await publishUserUpdated(result, traceId, adminId, clientIP, userAgent);
+    }
 
     res.json(result);
   } catch (err) {

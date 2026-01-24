@@ -1,3 +1,36 @@
+import { jest, describe, it, expect, beforeEach, afterEach } from '@jest/globals';
+import httpMocks from 'node-mocks-http';
+
+// Mock modules using jest.mock (synchronous hoisting)
+jest.mock('../../../src/models/user.model.js', () => ({
+  __esModule: true,
+  default: {
+    findOne: jest.fn(),
+    findById: jest.fn(),
+    findByIdAndUpdate: jest.fn(),
+    findByIdAndDelete: jest.fn(),
+    create: jest.fn(),
+  },
+}));
+
+jest.mock('../../../src/services/user.service.js', () => ({
+  getUserById: jest.fn(),
+  getUserByEmail: jest.fn(),
+  updateUser: jest.fn(),
+  deleteUser: jest.fn(),
+}));
+
+jest.mock('../../../src/events/publisher.js', () => ({
+  publishUserCreated: jest.fn(async () => undefined),
+  publishUserUpdated: jest.fn(async () => undefined),
+  publishUserDeleted: jest.fn(async () => undefined),
+  publishUserLoggedIn: jest.fn(async () => undefined),
+  publishUserLoggedOut: jest.fn(async () => undefined),
+  publishUserDeactivated: jest.fn(async () => undefined),
+  publishUserReactivated: jest.fn(async () => undefined),
+}));
+
+// Import controller after mocking dependencies
 import {
   createUser,
   getUser,
@@ -12,21 +45,6 @@ import {
 } from '../../../src/controllers/user.controller.js';
 import User from '../../../src/models/user.model.js';
 import * as userService from '../../../src/services/user.service.js';
-import httpMocks from 'node-mocks-http';
-
-jest.mock('../../../src/models/user.model.js');
-jest.mock('../../../src/services/user.service.js');
-jest.mock('../../../src/services/messageBrokerServiceClient.js', () => ({
-  __esModule: true,
-  default: {
-    publishEvent: jest.fn(async () => undefined),
-    publishUserCreated: jest.fn(async () => undefined),
-    publishUserUpdated: jest.fn(async () => undefined),
-    publishUserDeleted: jest.fn(async () => undefined),
-    publishUserLoggedIn: jest.fn(async () => undefined),
-    publishUserLoggedOut: jest.fn(async () => undefined),
-  },
-}));
 
 const next = jest.fn();
 

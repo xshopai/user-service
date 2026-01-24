@@ -330,6 +330,122 @@ export async function publishUserLoggedOut(userId, email, traceId) {
   }
 }
 
+/**
+ * Publish user.deactivated event
+ * @param {string} userId - User ID
+ * @param {string} traceId - Trace ID for distributed tracing
+ * @param {string} [deactivatedBy] - ID of user who performed deactivation (null for self)
+ * @param {string} [reason] - Reason for deactivation
+ * @returns {Promise<void>}
+ */
+export async function publishUserDeactivated(userId, traceId, deactivatedBy = null, reason = null) {
+  const client = getDaprClient();
+  if (!client) {
+    logger.debug('Dapr disabled, skipping event publish', {
+      operation: 'event_publish',
+      eventType: 'user.deactivated',
+      userId,
+    });
+    return;
+  }
+
+  try {
+    const eventData = {
+      specversion: '1.0',
+      type: 'com.xshopai.user.deactivated',
+      source: 'user-service',
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      time: new Date().toISOString(),
+      datacontenttype: 'application/json',
+      data: {
+        userId,
+        deactivatedAt: new Date().toISOString(),
+        deactivatedBy: deactivatedBy || userId,
+        reason: reason || 'user_request',
+      },
+      metadata: {
+        traceId,
+        environment: config.service.nodeEnv,
+      },
+    };
+
+    await client.pubsub.publish(config.dapr.pubsubName, 'user.deactivated', eventData);
+
+    logger.info('Published user.deactivated event', null, {
+      operation: 'event_publish',
+      eventType: 'user.deactivated',
+      userId,
+      traceId,
+    });
+  } catch (error) {
+    logger.error('Failed to publish user.deactivated event', null, {
+      operation: 'event_publish',
+      eventType: 'user.deactivated',
+      userId,
+      error: error.message,
+      traceId,
+    });
+    // Don't throw - graceful degradation
+  }
+}
+
+/**
+ * Publish user.reactivated event
+ * @param {string} userId - User ID
+ * @param {string} traceId - Trace ID for distributed tracing
+ * @param {string} [reactivatedBy] - ID of user who performed reactivation (null for self)
+ * @returns {Promise<void>}
+ */
+export async function publishUserReactivated(userId, traceId, reactivatedBy = null) {
+  const client = getDaprClient();
+  if (!client) {
+    logger.debug('Dapr disabled, skipping event publish', {
+      operation: 'event_publish',
+      eventType: 'user.reactivated',
+      userId,
+    });
+    return;
+  }
+
+  try {
+    const eventData = {
+      specversion: '1.0',
+      type: 'com.xshopai.user.reactivated',
+      source: 'user-service',
+      id: `${Date.now()}-${Math.random().toString(36).substring(2, 9)}`,
+      time: new Date().toISOString(),
+      datacontenttype: 'application/json',
+      data: {
+        userId,
+        reactivatedAt: new Date().toISOString(),
+        reactivatedBy: reactivatedBy || userId,
+      },
+      metadata: {
+        traceId,
+        environment: config.service.nodeEnv,
+      },
+    };
+
+    await client.pubsub.publish(config.dapr.pubsubName, 'user.reactivated', eventData);
+
+    logger.info('Published user.reactivated event', null, {
+      operation: 'event_publish',
+      eventType: 'user.reactivated',
+      userId,
+      traceId,
+    });
+  } catch (error) {
+    logger.error('Failed to publish user.reactivated event', null, {
+      operation: 'event_publish',
+      eventType: 'user.reactivated',
+      userId,
+      error: error.message,
+      traceId,
+    });
+    // Don't throw - graceful degradation
+  }
+}
+
 // Export as default object for compatibility
 export default {
   publishUserCreated,
@@ -337,4 +453,6 @@ export default {
   publishUserDeleted,
   publishUserLoggedIn,
   publishUserLoggedOut,
+  publishUserDeactivated,
+  publishUserReactivated,
 };

@@ -21,37 +21,53 @@ For production-like local development with Dapr, see [Local Development with Dap
 
 ## Step 1: Configure Environment for Non-Dapr Mode
 
-Ensure your `.env` file includes the required configuration:
+The repository includes pre-configured environment files:
+
+- **`.env.local`** - For local development without Dapr (direct MongoDB connection)
+- **`.env.dapr`** - For local development with Dapr sidecar
+
+Copy the local environment template to `.env`:
 
 ```bash
-# Application
+# On Linux/Mac:
+cp .env.local .env
+
+# On Windows (PowerShell):
+Copy-Item .env.local .env
+
+# On Windows (Command Prompt):
+copy .env.local .env
+```
+
+The `.env.local` file contains:
+
+```bash
 NODE_ENV=development
 PORT=8002
 NAME=user-service
 VERSION=1.0.0
 
-# Logging
 LOG_LEVEL=debug
 LOG_FORMAT=console
+LOG_TO_CONSOLE=true
+LOG_TO_FILE=false
+LOG_FILE_PATH=./logs/user-service.log
 
-# MongoDB Connection
-MONGODB_HOST=localhost
-MONGODB_PORT=27018
-MONGODB_USERNAME=admin
-MONGODB_PASSWORD=admin123
-MONGODB_DATABASE=user_service_db
-MONGODB_AUTH_SOURCE=admin
+# Direct MongoDB connection (no Dapr required)
+DATABASE_URL=mongodb://admin:admin123@localhost:27018/user_service_db?authSource=admin
 
-# JWT Configuration (required for authentication)
-JWT_SECRET=8tDBDMcpxroHoHjXjk8xp/uAn8rzD4y8ZZremFkC4gI=
-JWT_ALGORITHM=HS256
-JWT_EXPIRES_IN=24h
+# Service Tokens (for service-to-service communication)
+AUTH_SERVICE_TOKEN=svc-auth-service-4ff5876fc86cc45a18d88e5d
+ADMIN_SERVICE_TOKEN=svc-admin-service-4ff5876fc86cc45a18d88e5d
+ORDER_SERVICE_TOKEN=svc-order-service-4ff5876fc86cc45a18d88e5d
+WEB_BFF_TOKEN=svc-web-bff-4ff5876fc86cc45a18d88e5d
 ```
 
 > **Note**:
 >
 > - Event publishing is automatically disabled without Dapr sidecar
-> - `JWT_SECRET` must match the secret used by auth-service to sign tokens
+> - `DATABASE_URL` provides direct MongoDB connection (no Dapr secret store needed)
+> - Service tokens must match tokens configured in calling services (auth-service, admin-service, etc.)
 
 ---
 
