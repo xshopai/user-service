@@ -199,6 +199,7 @@ COSMOS_ACCOUNT="cosmos-xshopai-aca"
 DB_NAME="user_service_db"
 
 # Create Cosmos DB account with MongoDB API
+# Note: Local auth must be enabled for connection string authentication
 az cosmosdb create \
   --resource-group $RESOURCE_GROUP \
   --name $COSMOS_ACCOUNT \
@@ -207,19 +208,35 @@ az cosmosdb create \
   --default-consistency-level Session \
   --locations regionName=$LOCATION failoverPriority=0 isZoneRedundant=false
 
+# Enable local (key-based) authentication for connection string access
+# This is required for seeding and local development tools
+az resource update \
+  --resource-group $RESOURCE_GROUP \
+  --name $COSMOS_ACCOUNT \
+  --resource-type "Microsoft.DocumentDB/databaseAccounts" \
+  --set properties.disableLocalAuth=false
+
 # Create database
 az cosmosdb mongodb database create \
   --resource-group $RESOURCE_GROUP \
   --account-name $COSMOS_ACCOUNT \
   --name $DB_NAME
 
-# Get connection string
-COSMOS_CONNECTION=$(az cosmosdb keys list \
+# Get connection string (raw - does not include database name)
+COSMOS_CONNECTION_RAW=$(az cosmosdb keys list \
   --resource-group $RESOURCE_GROUP \
   --name $COSMOS_ACCOUNT \
   --type connection-strings \
   --query connectionStrings[0].connectionString \
   --output tsv)
+
+# Format DATABASE_URL with database name included in the path
+# The raw connection string format: mongodb://user:pass@host:port/?params
+# We need to add the database name: mongodb://user:pass@host:port/DATABASE?params
+# This extracts everything before the '?' and inserts the database name
+COSMOS_CONNECTION="${COSMOS_CONNECTION_RAW/\?/\/${DB_NAME}?}"
+
+echo "Database URL configured for: $DB_NAME"
 ```
 
 ### Step 11: Create Dapr Component for Azure Service Bus
