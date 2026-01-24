@@ -35,13 +35,11 @@ az account show
 RESOURCE_GROUP="rg-xshopai-aca"
 LOCATION="swedencentral"
 
-# Create resource group (skip if already exists for other services)
+# Create resource group (idempotent - safe to run if already exists)
 az group create \
   --name $RESOURCE_GROUP \
   --location $LOCATION
 ```
-
-> **Note**: This resource group and all resources within it are specific to Azure Container Apps deployment. For AKS deployment, use `rg-xshopai-aks` with separate resources.
 
 ### Step 3: Create Azure Container Registry
 
@@ -49,7 +47,9 @@ az group create \
 # Set ACR name (ACA-specific, must be globally unique)
 ACR_NAME="acrxshopaiaca"
 
-# Create container registry
+# Create container registry (skip if already created by another service)
+# This command is NOT idempotent - it will fail if ACR already exists
+# You can safely ignore "already exists" errors
 az acr create \
   --resource-group $RESOURCE_GROUP \
   --name $ACR_NAME \
@@ -117,28 +117,59 @@ AI_KEY=$(az monitor app-insights component show \
 echo "App Insights Key: $AI_KEY"
 ```
 
-### Step 7: Create Container Apps Environment
+### Step 7: Create Log Analytics Workspace
+
+```bash
+# Set Log Analytics workspace name (shared across all xshopai services)
+LOG_ANALYTICS_WORKSPACE="law-xshopai-aca"
+
+# Create Log Analytics workspace (skip if already exists)
+az monitor log-analytics workspace create \
+  --resource-group $RESOURCE_GROUP \
+  --workspace-name $LOG_ANALYTICS_WORKSPACE \
+  --location $LOCATION
+
+# Get workspace ID and key (needed for Container Apps Environment)
+LOG_ANALYTICS_WORKSPACE_ID=$(az monitor log-analytics workspace show \
+  --resource-group $RESOURCE_GROUP \
+  --workspace-name $LOG_ANALYTICS_WORKSPACE \
+  --query customerId \
+  --output tsv)
+
+LOG_ANALYTICS_KEY=$(az monitor log-analytics workspace get-shared-keys \
+  --resource-group $RESOURCE_GROUP \
+  --workspace-name $LOG_ANALYTICS_WORKSPACE \
+  --query primarySharedKey \
+  --output tsv)
+
+echo "Log Analytics Workspace ID: $LOG_ANALYTICS_WORKSPACE_ID"
+```
+
+### Step 8: Create Container Apps Environment
 
 ```bash
 # Set environment name (ACA-specific)
 ENVIRONMENT_NAME="cae-xshopai-aca"
 
 # Create Container Apps environment with Dapr enabled
+# Skip if already created by another service - will fail with "already exists" error
 az containerapp env create \
   --name $ENVIRONMENT_NAME \
   --resource-group $RESOURCE_GROUP \
   --location $LOCATION \
   --dapr-instrumentation-key $AI_KEY \
+  --logs-workspace-id $LOG_ANALYTICS_WORKSPACE_ID \
+  --logs-workspace-key $LOG_ANALYTICS_KEY \
   --enable-workload-profiles false
 ```
 
-### Step 8: Create Azure Service Bus (for messaging)
+### Step 9: Create Azure Service Bus (for messaging)
 
 ```bash
 # Set Service Bus namespace (ACA-specific)
 SB_NAMESPACE="sb-xshopai-aca"
 
-# Create Service Bus namespace
+# Create Service Bus namespace (skip if already exists)
 az servicebus namespace create \
   --name $SB_NAMESPACE \
   --resource-group $RESOURCE_GROUP \
@@ -160,7 +191,7 @@ SB_CONNECTION=$(az servicebus namespace authorization-rule keys list \
   --output tsv)
 ```
 
-### Step 9: Create Azure Cosmos DB (MongoDB API)
+### Step 10: Create Azure Cosmos DB (MongoDB API)
 
 ```bash
 # Set Cosmos DB account name (ACA-specific)
@@ -191,7 +222,7 @@ COSMOS_CONNECTION=$(az cosmosdb keys list \
   --output tsv)
 ```
 
-### Step 10: Create Dapr Component for Azure Service Bus
+### Step 11: Create Dapr Component for Azure Service Bus
 
 The local `.dapr/components/event-bus.yaml` is configured for RabbitMQ. For Azure Container Apps, create an Azure Service Bus component in the same folder:
 
@@ -219,7 +250,7 @@ cat .dapr/components/dapr-servicebus-component.yaml
 > - Azure Container Apps uses Azure Service Bus (`.dapr/components/dapr-servicebus-component.yaml`)
 > - The `$SB_CONNECTION` variable was set in Step 8
 
-### Step 11: Deploy Container App
+### Step 12: Deploy Container App
 
 ```bash
 # Set app name
@@ -248,12 +279,16 @@ az containerapp create \
   --dapr-app-port 8002 \
   --env-vars \
     "NODE_ENV=production" \
-    "MONGODB_URI=$COSMOS_CONNECTION" \
-    "MESSAGING_PROVIDER=dapr" \
-    "DAPR_PUBSUB_NAME=user-pubsub"
+    "PORT=8002" \
+    "DATABASE_URL=$COSMOS_CONNECTION" \
+    "DAPR_PUBSUB_NAME=user-pubsub" \
+    "DAPR_HTTP_PORT=3500" \
+    "LOG_LEVEL=info"
 ```
 
-### Step 12: Configure Dapr Component in Container Apps
+> **Note**: The `DATABASE_URL` environment variable bypasses Dapr Secret Store for database credentials. For production, consider using Azure Key Vault with a Dapr secret store component instead.
+
+### Step 13: Configure Dapr Component in Container Apps
 
 ```bash
 # Create Dapr pub/sub component (using the file created in Step 10)
@@ -264,7 +299,7 @@ az containerapp env dapr-component set \
   --yaml .dapr/components/dapr-servicebus-component.yaml
 ```
 
-### Step 13: Verify Deployment
+### Step 14: Verify Deployment
 
 ```bash
 # Check app status

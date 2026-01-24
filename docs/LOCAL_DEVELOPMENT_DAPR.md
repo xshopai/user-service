@@ -90,8 +90,9 @@ WEB_BFF_TOKEN=svc-web-bff-4ff5876fc86cc45a18d88e5d
 
 > **Note**:
 >
-> - When using Dapr mode, database credentials are retrieved from the Dapr secret store (configured in `.dapr/secrets.json`)
+> - When using Dapr mode, `DATABASE_URL` and `JWT_SECRET` are retrieved from the Dapr secret store (configured in `.dapr/secrets.json`)
 > - The Dapr sidecar handles RabbitMQ connections using the configuration in `.dapr/components/event-bus.yaml`
+> - If Dapr secret store fails, the service falls back to `DATABASE_URL` environment variable
 
 ---
 
@@ -117,12 +118,12 @@ If using Dapr secret store, create `.dapr/secrets.json`:
 
 ```json
 {
-  "MONGODB_URI": "mongodb://admin:admin123@localhost:27018/user_service_db?authSource=admin",
+  "DATABASE_URL": "mongodb://admin:admin123@localhost:27018/user_service_db?authSource=admin",
   "JWT_SECRET": "8tDBDMcpxroHoHjXjk8xp/uAn8rzD4y8ZZremFkC4gI="
 }
 ```
 
-> **Note:** Use UPPER_SNAKE_CASE for secret names to match platform conventions.
+> **Note:** Use UPPER_SNAKE_CASE for secret names to match platform conventions (`.env` files, inventory-service, etc.).
 
 > **Security Note:** This file is gitignored. Never commit secrets.json to version control.
 

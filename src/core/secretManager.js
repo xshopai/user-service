@@ -72,45 +72,34 @@ class SecretManager {
   /**
    * Get database configuration from secrets or environment variables
    *
-   * Supports two modes:
-   * 1. Dapr mode: Gets individual secrets from Dapr secret store
-   * 2. Non-Dapr mode: Falls back to DATABASE_URL env var for local dev without Dapr
+   * Priority order:
+   * 1. DATABASE_URL from Dapr secret store (consistent with inventory-service)
+   * 2. DATABASE_URL from environment variable (fallback for non-Dapr mode)
    *
    * DATABASE_URL format: mongodb://username:password@host:port/database?authSource=admin
    *
    * @returns {Promise<Object>} Database connection parameters
    */
   async getDatabaseConfig() {
-    // Check for DATABASE_URL env var first (non-Dapr local dev mode)
-    const databaseUrl = process.env.DATABASE_URL;
-    if (databaseUrl) {
-      logger.info('Using DATABASE_URL environment variable (non-Dapr mode)');
-      return this._parseDatabaseUrl(databaseUrl);
-    }
-
-    // Dapr mode: Get individual secrets from secret store
+    // Try Dapr secret store first (consistent with inventory-service pattern)
     try {
-      const [host, port, username, password, database, authSource] = await Promise.all([
-        this.getSecret('mongodb-host'),
-        this.getSecret('mongodb-port'),
-        this.getSecret('mongo-initdb-root-username'),
-        this.getSecret('mongo-initdb-root-password'),
-        this.getSecret('mongo-initdb-database'),
-        this.getSecret('mongodb-auth-source'),
-      ]);
-
-      return {
-        host: host || '127.0.0.1',
-        port: parseInt(port || '27018', 10),
-        username: username || 'admin',
-        password: password || 'admin123',
-        database: database || 'user_service_db',
-        authSource: authSource || 'admin',
-      };
+      const databaseUrl = await this.getSecret('DATABASE_URL');
+      if (databaseUrl) {
+        logger.info('Using DATABASE_URL from Dapr secret store');
+        return this._parseDatabaseUrl(databaseUrl);
+      }
     } catch (error) {
-      logger.error('Failed to get database config from Dapr. Set DATABASE_URL env var for non-Dapr mode.');
-      throw error;
+      logger.debug('DATABASE_URL not found in Dapr secret store, checking env var');
     }
+
+    // Fallback to DATABASE_URL env var (non-Dapr local dev mode)
+    const envDatabaseUrl = process.env.DATABASE_URL;
+    if (envDatabaseUrl) {
+      logger.info('Using DATABASE_URL from environment variable');
+      return this._parseDatabaseUrl(envDatabaseUrl);
+    }
+
+    throw new Error('DATABASE_URL not found. Set it in Dapr secrets.json or as an environment variable.');
   }
 
   /**
@@ -139,14 +128,12 @@ class SecretManager {
 
   /**
    * Get JWT configuration from secrets
-   * Only jwt-secret is truly secret - algorithm and expiration are just config.
-   *
-   * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
+   * Only JWT_SECRET is truly secret - algorithm and expiration are just config.
    *
    * @returns {Promise<Object>} JWT configuration parameters
    */
   async getJwtConfig() {
-    const secret = await this.getSecret('jwt-secret');
+    const secret = await this.getSecret('JWT_SECRET');
 
     return {
       secret: secret || 'default-secret-key',
