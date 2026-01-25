@@ -233,10 +233,11 @@ COSMOS_CONNECTION_RAW=$(az cosmosdb keys list \
 # Format DATABASE_URL with database name included in the path
 # The raw connection string format: mongodb://user:pass@host:port/?params
 # We need to add the database name: mongodb://user:pass@host:port/DATABASE?params
-# This extracts everything before the '?' and inserts the database name
-COSMOS_CONNECTION="${COSMOS_CONNECTION_RAW/\?/\/${DB_NAME}?}"
+# Use sed for reliable string replacement (handles /? correctly)
+COSMOS_CONNECTION=$(echo "$COSMOS_CONNECTION_RAW" | sed "s|/\?|/${DB_NAME}?|")
 
 echo "Database URL configured for: $DB_NAME"
+echo "Connection (sanitized): $(echo "$COSMOS_CONNECTION" | sed 's|://[^:]*:[^@]*@|://***:***@|')"
 ```
 
 ### Step 11: Create Dapr Component for Azure Service Bus
