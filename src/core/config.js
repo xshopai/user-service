@@ -24,9 +24,10 @@ export default {
   },
 
   dapr: {
-    httpPort: parseInt(process.env.DAPR_HTTP_PORT, 10) || 3502,
+    httpPort: parseInt(process.env.DAPR_HTTP_PORT, 10) || 3500,
+    grpcPort: parseInt(process.env.DAPR_GRPC_PORT, 10) || 50001,
     host: process.env.DAPR_HOST || 'localhost',
-    pubsubName: process.env.DAPR_PUBSUB_NAME || 'user-pubsub',
+    pubsubName: 'pubsub',
     appId: process.env.DAPR_APP_ID || 'user-service',
   },
 };

@@ -1187,10 +1187,10 @@ flowchart TB
 | `LOG_LEVEL`        | Logging level               | No       | `debug`        |
 | `LOG_FORMAT`       | Log format (console/json)   | No       | `console`      |
 | `DAPR_HOST`        | Dapr sidecar host           | No       | `localhost`    |
-| `DAPR_HTTP_PORT`   | Dapr HTTP port              | No       | `3502`         |
-| `DAPR_GRPC_PORT`   | Dapr gRPC port              | No       | `50002`        |
+| `DAPR_HTTP_PORT`   | Dapr HTTP port              | No       | `3500`         |
+| `DAPR_GRPC_PORT`   | Dapr gRPC port              | No       | `50001`        |
 | `DAPR_APP_ID`      | Dapr application ID         | No       | `user-service` |
-| `DAPR_PUBSUB_NAME` | Dapr pub/sub component name | No       | `event-pubsub` |
+| `DAPR_PUBSUB_NAME` | Dapr pub/sub component name | No       | `pubsub`       |
 | `JWT_ALGORITHM`    | JWT algorithm               | No       | `HS256`        |
 | `JWT_EXPIRATION`   | JWT expiration in seconds   | No       | `3600`         |
 
@@ -1211,10 +1211,11 @@ Database connection is configured via individual environment variables:
 
 #### 6.2.1 Dapr Provider (Default)
 
-| Variable           | Description            | Required           |
-| ------------------ | ---------------------- | ------------------ |
-| `DAPR_HTTP_PORT`   | Dapr sidecar HTTP port | No (default: 3502) |
-| `DAPR_PUBSUB_NAME` | Pub/sub component name | Yes                |
+| Variable           | Description            | Required            |
+| ------------------ | ---------------------- | ------------------- |
+| `DAPR_HTTP_PORT`   | Dapr sidecar HTTP port | No (default: 3500)  |
+| `DAPR_GRPC_PORT`   | Dapr sidecar gRPC port | No (default: 50001) |
+| `DAPR_PUBSUB_NAME` | Pub/sub component name | Yes                 |
 
 ---
 

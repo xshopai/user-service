@@ -13,8 +13,8 @@ class SecretManager {
   constructor() {
     this.daprHost = config.dapr.host;
     this.daprPort = config.dapr.httpPort;
-    // Component name is configurable - defaults to 'secret-store' for local dev
-    this.secretStoreName = process.env.DAPR_SECRET_STORE_NAME || 'secret-store';
+    // Standard Dapr component name for secret store
+    this.secretStoreName = 'secretstore';
 
     logger.info('Secret manager initialized', {
       event: 'secret_manager_init',

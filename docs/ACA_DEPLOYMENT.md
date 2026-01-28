@@ -299,7 +299,8 @@ az containerapp create \
     "NODE_ENV=production" \
     "PORT=8002" \
     "DATABASE_URL=$COSMOS_CONNECTION" \
-    "DAPR_PUBSUB_NAME=user-pubsub" \
+    "DAPR_PUBSUB_NAME=pubsub" \
+    "DAPR_SECRETSTORE_NAME=secretstore" \
     "DAPR_HTTP_PORT=3500" \
     "LOG_LEVEL=info"
 ```
@@ -313,7 +314,7 @@ az containerapp create \
 az containerapp env dapr-component set \
   --name $ENVIRONMENT_NAME \
   --resource-group $RESOURCE_GROUP \
-  --dapr-component-name user-pubsub \
+  --dapr-component-name pubsub \
   --yaml .dapr/components/dapr-servicebus-component.yaml
 ```
 
