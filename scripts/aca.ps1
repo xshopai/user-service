@@ -62,8 +62,8 @@ $ServiceVersion = "1.0.0"
 $AppPort = 8002
 $ProjectName = "xshopai"
 
-# Dapr configuration
-$DaprHttpPort = 3500
+# Dapr configuration (per PORT_CONFIGURATION.md: user-service = 3502/50002)
+$DaprHttpPort = 3502
 $DaprPubsubName = "pubsub"
 
 # Get script directory and service directory

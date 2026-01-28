@@ -87,8 +87,8 @@ SERVICE_VERSION="1.0.0"
 APP_PORT=8002
 PROJECT_NAME="xshopai"
 
-# Dapr configuration
-DAPR_HTTP_PORT=3500
+# Dapr configuration (per PORT_CONFIGURATION.md: user-service = 3502/50002)
+DAPR_HTTP_PORT=3502
 DAPR_PUBSUB_NAME="pubsub"
 
 # Get script directory and service directory
