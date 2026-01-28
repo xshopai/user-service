@@ -2,7 +2,7 @@
 
 **Service**: User management microservice for xshopai platform  
 **Stack**: Node.js 18+, Express 5.1.0, MongoDB 8.18.0, Mongoose 8.18.0  
-**Port**: 8002 | **Dapr HTTP**: 3502 | **Dapr gRPC**: 50003  
+**Port**: 8002 | **Dapr HTTP**: 3500 | **Dapr gRPC**: 50001  
 **Pattern**: Pure Publisher (Dapr Pub/Sub → RabbitMQ)
 
 ## Architecture at a Glance
@@ -25,6 +25,7 @@ src/
 ```
 
 **Critical flows**:
+
 - Secrets: Dapr Secret Store → env fallback (`src/clients/dapr.secret.manager.js`)
 - Events: Controllers → `src/events/publisher.js` → Dapr Pub/Sub → RabbitMQ
 - Auth: JWT (issued by auth-service) → `requireAuth` middleware → attach `req.user`
@@ -46,6 +47,7 @@ await publishUserCreated(user, req.traceId, req.ip, req.headers['user-agent']);
 ```
 
 **Event format** (CloudEvents-compliant):
+
 ```javascript
 {
   specversion: '1.0',
@@ -97,6 +99,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
 ```
 
 **Key points**:
+
 - Use `asyncHandler` (auto-catches errors, calls `next(err)`)
 - Never throw raw errors - use `ErrorResponse(message, statusCode, code)`
 - Always include `traceId` in logs/events (from `req.traceId`)
@@ -105,6 +108,7 @@ export const createUser = asyncHandler(async (req, res, next) => {
 ### 3. Authentication & Authorization
 
 **JWT validation** (auth-service issues tokens, user-service validates):
+
 ```javascript
 import { requireAuth, requireRoles, requireAdmin } from '../middlewares/auth.middleware.js';
 
@@ -117,12 +121,14 @@ router.post('/premium-feature', requireAuth, requireRoles('premium', 'admin'), u
 ```
 
 **Access user**: `req.user` (populated by `requireAuth`):
+
 ```javascript
-const userId = req.user._id;    // from JWT
-const roles = req.user.roles;   // ['customer'] or ['admin']
+const userId = req.user._id; // from JWT
+const roles = req.user.roles; // ['customer'] or ['admin']
 ```
 
 **JWT secret** (from Dapr Secret Store or env fallback):
+
 ```javascript
 import { getJwtConfig } from '../clients/index.js';
 const { secret } = await getJwtConfig(); // Cached after first call
@@ -131,20 +137,24 @@ const { secret } = await getJwtConfig(); // Cached after first call
 ### 4. Mongoose Models & Subdocuments
 
 **User model** (`src/models/user.model.js`) with embedded arrays:
+
 ```javascript
-const userSchema = new mongoose.Schema({
-  email: { type: String, required: true, unique: true },
-  password: { type: String, minlength: 6 }, // Auto-hashed by pre-save hook
-  addresses: [addressSchema],               // Embedded subdocs
-  paymentMethods: [paymentSchema],
-  wishlist: [wishlistSchema],
-  preferences: preferencesSchema,           // Single subdoc
-  roles: { type: [String], enum: ['customer', 'admin'], default: ['customer'] },
-  isActive: { type: Boolean, default: true }
-}, { timestamps: true });
+const userSchema = new mongoose.Schema(
+  {
+    email: { type: String, required: true, unique: true },
+    password: { type: String, minlength: 6 }, // Auto-hashed by pre-save hook
+    addresses: [addressSchema], // Embedded subdocs
+    paymentMethods: [paymentSchema],
+    wishlist: [wishlistSchema],
+    preferences: preferencesSchema, // Single subdoc
+    roles: { type: [String], enum: ['customer', 'admin'], default: ['customer'] },
+    isActive: { type: Boolean, default: true },
+  },
+  { timestamps: true },
+);
 
 // Pre-save hook: hash password if modified, handle audit fields
-userSchema.pre('save', async function(next) {
+userSchema.pre('save', async function (next) {
   if (this.isModified('password') && !/^\$2[aby]\$/.test(this.password)) {
     this.password = await bcrypt.hash(this.password, 12);
   }
@@ -154,18 +164,21 @@ userSchema.pre('save', async function(next) {
 ```
 
 **Adding subdocuments**:
+
 ```javascript
 user.addresses.push({ type: 'shipping', fullName: 'John Doe', ... });
 await user.save(); // Triggers validation
 ```
 
 **Removing subdocuments**:
+
 ```javascript
 user.addresses.id(addressId).remove();
 await user.save();
 ```
 
 **Always exclude password** from responses:
+
 ```javascript
 const user = await User.findById(userId).select('-password');
 ```
@@ -173,25 +186,28 @@ const user = await User.findById(userId).select('-password');
 ### 5. Configuration & Secrets
 
 **Non-sensitive config** (`src/core/config.js`):
+
 ```javascript
 import config from '../core/config.js';
-const port = config.service.port;              // 8002
-const daprPort = config.dapr.httpPort;         // 3502
-const logLevel = config.logging.level;         // 'debug'
+const port = config.service.port; // 8002
+const daprPort = config.dapr.httpPort; // 3500
+const logLevel = config.logging.level; // 'debug'
 ```
 
 **Sensitive secrets** (Dapr Secret Store → env fallback):
+
 ```javascript
 import { getDatabaseConfig, getJwtConfig } from '../clients/index.js';
 
-const dbConfig = await getDatabaseConfig();    // { host, port, username, password, database }
-const jwtConfig = await getJwtConfig();        // { secret, expire }
+const dbConfig = await getDatabaseConfig(); // { host, port, username, password, database }
+const jwtConfig = await getJwtConfig(); // { secret, expire }
 ```
 
 **Environment variables** (`.env`):
+
 ```env
 PORT=8002
-DAPR_HTTP_PORT=3502
+DAPR_HTTP_PORT=3500
 DAPR_PUBSUB_NAME=user-pubsub
 MONGODB_HOST=localhost
 MONGODB_PORT=27018
@@ -204,25 +220,27 @@ LOG_LEVEL=debug
 ### 6. Logging & Tracing
 
 **Structured logging** (Winston):
+
 ```javascript
 import logger from '../core/logger.js';
 
 logger.info('User created', null, {
   operation: 'create_user',
   userId: user._id.toString(),
-  traceId: req.traceId,        // From traceContext.middleware
-  spanId: req.spanId
+  traceId: req.traceId, // From traceContext.middleware
+  spanId: req.spanId,
 });
 
 logger.error('Failed to publish event', null, {
   operation: 'event_publish',
   eventType: 'user.created',
   error: err.message,
-  traceId: req.traceId
+  traceId: req.traceId,
 });
 ```
 
 **Trace context** (automatic):
+
 - `traceContext.middleware.js` extracts/generates `req.traceId` and `req.spanId`
 - Use in all logs and event metadata for distributed tracing
 - Header: `x-trace-id` (incoming) or generated UUID
@@ -234,6 +252,7 @@ logger.error('Failed to publish event', null, {
 ## Common Tasks
 
 ### Add a new endpoint
+
 1. Define route in `src/routes/user.routes.js`:
    ```javascript
    router.post('/addresses', requireAuth, addAddress);
@@ -244,11 +263,14 @@ logger.error('Failed to publish event', null, {
 5. Write tests in `tests/unit/controllers/`
 
 ### Add a new event type
+
 1. Add function to `src/events/publisher.js`:
    ```javascript
    export async function publishUserEmailVerified(userId, email, traceId) {
      const client = getDaprClient();
-     const eventData = { /* CloudEvents format */ };
+     const eventData = {
+       /* CloudEvents format */
+     };
      await client.pubsub.publish(config.dapr.pubsubName, 'user.email_verified', eventData);
      logger.info('Published user.email_verified event', null, { userId, traceId });
    }
@@ -256,7 +278,9 @@ logger.error('Failed to publish event', null, {
 2. Call from controller after operation completes
 
 ### Testing
+
 **Jest with ES modules** (`jest.config.js` uses `transform: {}`):
+
 ```bash
 npm test                  # All tests
 npm run test:unit         # Unit tests only
@@ -265,6 +289,7 @@ npm run test:coverage     # Coverage report
 ```
 
 **Unit test pattern** (mock external dependencies):
+
 ```javascript
 import User from '../../../src/models/user.model.js';
 import { publishUserCreated } from '../../../src/events/publisher.js';
@@ -283,7 +308,7 @@ describe('createUser', () => {
       expect.objectContaining({ email: 'test@example.com' }),
       expect.any(String), // traceId
       expect.any(String), // ipAddress
-      expect.any(String)  // userAgent
+      expect.any(String), // userAgent
     );
   });
 });
@@ -294,6 +319,7 @@ describe('createUser', () => {
 ## Development Workflow
 
 ### Local setup
+
 ```bash
 npm install
 # Start infrastructure (MongoDB, RabbitMQ)
@@ -311,22 +337,26 @@ docker-compose -f docker-compose.infrastructure.yml up -d
 ```
 
 ### VS Code debugging
+
 **`.vscode/launch.json`** has two configs:
+
 - "Debug User Service (Direct)" - no Dapr
 - "Debug User Service (with Dapr)" - full stack
 
 **`.vscode/tasks.json`** has:
+
 - "Kill Port 8002" - cleanup before debug
 - "Start Dapr Sidecar" - manual Dapr start
 - "Stop Dapr Sidecar" - cleanup after debug
 
 ### API testing
+
 ```bash
 # Health check
 curl http://localhost:8002/api/health
 
 # Via Dapr
-curl http://localhost:3502/v1.0/invoke/user-service/method/api/health
+curl http://localhost:3500/v1.0/invoke/user-service/method/api/health
 
 # Create user
 curl -X POST http://localhost:8002/api/users \
@@ -339,13 +369,14 @@ curl -X POST http://localhost:8002/api/users \
 ## Key Differences from Documentation
 
 **Outdated references in docs** (use actual code):
+
 - ❌ `src/services/daprPublisher.js` → ✅ `src/events/publisher.js`
 - ❌ `req.correlationId` → ✅ `req.traceId` (trace context middleware)
 - ❌ `DAPR_ENABLED` env var → ✅ Removed (always uses Dapr, graceful fallback)
-- ❌ Dapr port 3500 → ✅ 3502 (user-service specific)
 - ❌ `src/observability/` → ✅ `src/core/logger.js` (centralized)
 
 **Project structure** (actual vs docs):
+
 ```
 Actual:
 src/
@@ -369,6 +400,7 @@ See `docs/PRD.md` for business requirements (REQ-1.x through REQ-9.x).
 See `docs/ARCHITECTURE.md` for technical architecture details.
 
 **Mapping examples**:
+
 - REQ-1.1 (User Registration) → `POST /api/users` → `user.controller.js::createUser` → publishes `user.created`
 - REQ-3.1 (Add Address) → `POST /api/users/addresses` → `user.address.controller.js::addAddress` → subdocument push
 - REQ-9.1 (Admin List Users) → `GET /api/admin/users` → requires `admin` role → `admin.controller.js::listUsers`
@@ -395,6 +427,7 @@ See `docs/ARCHITECTURE.md` for technical architecture details.
 ---
 
 **Quick reference imports**:
+
 ```javascript
 import asyncHandler from '../middlewares/asyncHandler.js';
 import ErrorResponse from '../core/errors.js';
@@ -407,34 +440,35 @@ import { getDatabaseConfig, getJwtConfig } from '../clients/index.js';
 ```
 
 export const createUser = asyncHandler(async (req, res, next) => {
-  const { email, password, firstName, lastName } = req.body;
+const { email, password, firstName, lastName } = req.body;
 
-  // 1. Validate input
-  if (!email) {
-    return next(new ErrorResponse('Email is required', 400, 'EMAIL_REQUIRED'));
-  }
+// 1. Validate input
+if (!email) {
+return next(new ErrorResponse('Email is required', 400, 'EMAIL_REQUIRED'));
+}
 
-  // 2. Business logic
-  const user = await User.create({ email, password, firstName, lastName });
+// 2. Business logic
+const user = await User.create({ email, password, firstName, lastName });
 
-  // 3. Publish event
-  await daprPublisher.publishUserCreated(user, req.correlationId, req.ip, req.get('user-agent'));
+// 3. Publish event
+await daprPublisher.publishUserCreated(user, req.correlationId, req.ip, req.get('user-agent'));
 
-  // 4. Structured logging
-  logger.info('User created successfully', null, {
-    operation: 'create_user',
-    userId: user._id.toString(),
-    correlationId: req.correlationId,
-  });
-
-  // 5. Response
-  res.status(201).json({
-    success: true,
-    message: 'User created successfully',
-    data: { userId: user._id, email: user.email },
-  });
+// 4. Structured logging
+logger.info('User created successfully', null, {
+operation: 'create_user',
+userId: user.\_id.toString(),
+correlationId: req.correlationId,
 });
-```
+
+// 5. Response
+res.status(201).json({
+success: true,
+message: 'User created successfully',
+data: { userId: user.\_id, email: user.email },
+});
+});
+
+````
 
 ### 3. Validation
 
@@ -453,7 +487,7 @@ const passwordValidation = userValidator.isValidPassword(password);
 if (!passwordValidation.valid) {
   return next(new ErrorResponse(passwordValidation.error, 400, 'INVALID_PASSWORD'));
 }
-```
+````
 
 ### 4. Authentication & Authorization
 
@@ -614,7 +648,7 @@ const user = await User.findOne({ email: 'john@example.com' });
 const user = await User.findByIdAndUpdate(
   userId,
   { firstName: 'Jonathan', phoneNumber: '+1-555-9999' },
-  { new: true, runValidators: true }
+  { new: true, runValidators: true },
 );
 
 // Delete user
@@ -927,7 +961,7 @@ res.json({ data: user }); // Safe
 await User.findByIdAndUpdate(
   userId,
   { email: 'newemail@example.com' },
-  { new: true, runValidators: true } // ✅ Validates email format
+  { new: true, runValidators: true }, // ✅ Validates email format
 );
 ```
 
@@ -1543,7 +1577,7 @@ app.use(
     credentials: true,
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     allowedHeaders: ['Content-Type', 'Authorization', 'X-Correlation-ID'],
-  })
+  }),
 );
 ```
 

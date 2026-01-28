@@ -76,8 +76,8 @@ LOG_FILE_PATH=./logs/user-service.log
 
 # Dapr Configuration
 DAPR_HOST=localhost
-DAPR_HTTP_PORT=3502
-DAPR_GRPC_PORT=50002
+DAPR_HTTP_PORT=3500
+DAPR_GRPC_PORT=50001
 DAPR_APP_ID=user-service
 DAPR_PUBSUB_NAME=event-pubsub
 
@@ -160,7 +160,7 @@ npm run debug:dapr
 
 ```bash
 # Check Dapr sidecar metadata
-curl http://localhost:3502/v1.0/metadata
+curl http://localhost:3500/v1.0/metadata
 
 # Check service health
 curl http://localhost:8002/health

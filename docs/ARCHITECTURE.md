@@ -93,8 +93,10 @@ The User Service is a core microservice within the xshopai e-commerce platform r
 | API Docs       | OpenAPI/Swagger                   |
 | Messaging      | Dapr Pub/Sub (RabbitMQ backend)   |
 | Main Port      | 8002                              |
-| Dapr HTTP Port | 3502                              |
-| Dapr gRPC Port | 50002                             |
+| Dapr HTTP Port | 3500                              |
+| Dapr gRPC Port | 50001                             |
+
+> **Note:** All services now use the standard Dapr ports (3500 for HTTP, 50001 for gRPC). This simplifies configuration and works consistently whether running via Docker Compose or individual service runs.
 
 ### 1.4 Directory Structure
 
@@ -222,7 +224,7 @@ flowchart TB
         direction TB
         MongoDB[("🗄️ MongoDB 8.x<br/>Port: 27018")]
         RabbitMQ[("🐰 RabbitMQ &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Message Broker &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; Port: 5672")]
-        Dapr["📡 Dapr Sidecar<br/>HTTP: 3502"]
+        Dapr["📡 Dapr Sidecar<br/>HTTP: 3500"]
         OTEL["📊 OpenTelemetry<br/>Collector"]
     end
 
@@ -347,7 +349,7 @@ flowchart TB
 | Component               | Purpose                       | Port/Connection          |
 | ----------------------- | ----------------------------- | ------------------------ |
 | MongoDB 8.x             | Persistent storage            | 27018 (configurable)     |
-| Dapr Sidecar            | Pub/sub messaging             | HTTP: 3502, gRPC: 50002  |
+| Dapr Sidecar            | Pub/sub messaging             | HTTP: 3500, gRPC: 50001  |
 | RabbitMQ (via Dapr)     | Message broker backend        | Abstracted by Dapr       |
 | OpenTelemetry Collector | Distributed tracing & metrics | 4317 (gRPC), 4318 (HTTP) |
 
