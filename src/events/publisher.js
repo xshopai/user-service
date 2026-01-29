@@ -1,22 +1,32 @@
 /**
  * User Service Event Publisher
- * Publishes CloudEvents-compliant events via Dapr pub/sub
+ * Publishes CloudEvents-compliant events via messaging abstraction layer
+ *
+ * Uses the messaging factory pattern to support multiple providers:
+ * - Dapr (default) - for Azure Container Apps, AKS, local Docker Compose
+ * - RabbitMQ - for direct integration without Dapr
+ * - Azure Service Bus - for Azure App Service deployments
+ *
+ * Provider is selected via MESSAGING_PROVIDER environment variable.
  */
-import { DaprClient } from '@dapr/dapr';
+import { getMessagingProvider } from '../messaging/index.js';
 import logger from '../core/logger.js';
 import config from '../core/config.js';
 
-// Lazy initialization of Dapr client
-let daprClient = null;
-
-function getDaprClient() {
-  if (!daprClient) {
-    daprClient = new DaprClient({
-      daprHost: config.dapr.host,
-      daprPort: config.dapr.httpPort,
+/**
+ * Get the messaging provider instance
+ * @returns {import('../messaging/provider.js').default} Messaging provider
+ */
+function getProvider() {
+  try {
+    return getMessagingProvider();
+  } catch (error) {
+    logger.error('Failed to get messaging provider', null, {
+      operation: 'messaging_init',
+      error: error.message,
     });
+    return null;
   }
-  return daprClient;
 }
 
 /**
@@ -28,9 +38,9 @@ function getDaprClient() {
  * @returns {Promise<void>}
  */
 export async function publishUserCreated(user, traceId, ipAddress = null, userAgent = null) {
-  const client = getDaprClient();
-  if (!client) {
-    logger.debug('Dapr disabled, skipping event publish', {
+  const provider = getProvider();
+  if (!provider) {
+    logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
       eventType: 'user.created',
       userId: user._id.toString(),
@@ -67,7 +77,7 @@ export async function publishUserCreated(user, traceId, ipAddress = null, userAg
       },
     };
 
-    await client.pubsub.publish(config.dapr.pubsubName, 'user.created', eventData);
+    await provider.publishEvent('user.created', eventData, traceId);
 
     logger.info('Published user.created event', null, {
       operation: 'event_publish',
@@ -97,9 +107,9 @@ export async function publishUserCreated(user, traceId, ipAddress = null, userAg
  * @returns {Promise<void>}
  */
 export async function publishUserUpdated(user, traceId, updatedBy = null, ipAddress = null, userAgent = null) {
-  const client = getDaprClient();
-  if (!client) {
-    logger.debug('Dapr disabled, skipping event publish', {
+  const provider = getProvider();
+  if (!provider) {
+    logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
       eventType: 'user.updated',
       userId: user._id.toString(),
@@ -137,7 +147,7 @@ export async function publishUserUpdated(user, traceId, updatedBy = null, ipAddr
       },
     };
 
-    await client.pubsub.publish(config.dapr.pubsubName, 'user.updated', eventData);
+    await provider.publishEvent('user.updated', eventData, traceId);
 
     logger.info('Published user.updated event', null, {
       operation: 'event_publish',
@@ -164,9 +174,9 @@ export async function publishUserUpdated(user, traceId, updatedBy = null, ipAddr
  * @returns {Promise<void>}
  */
 export async function publishUserDeleted(userId, traceId) {
-  const client = getDaprClient();
-  if (!client) {
-    logger.debug('Dapr disabled, skipping event publish', {
+  const provider = getProvider();
+  if (!provider) {
+    logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
       eventType: 'user.deleted',
       userId,
@@ -192,7 +202,7 @@ export async function publishUserDeleted(userId, traceId) {
       },
     };
 
-    await client.pubsub.publish(config.dapr.pubsubName, 'user.deleted', eventData);
+    await provider.publishEvent('user.deleted', eventData, traceId);
 
     logger.info('Published user.deleted event', null, {
       operation: 'event_publish',
@@ -222,9 +232,9 @@ export async function publishUserDeleted(userId, traceId) {
  * @returns {Promise<void>}
  */
 export async function publishUserLoggedIn(userId, email, traceId, ipAddress = null, userAgent = null) {
-  const client = getDaprClient();
-  if (!client) {
-    logger.debug('Dapr disabled, skipping event publish', {
+  const provider = getProvider();
+  if (!provider) {
+    logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
       eventType: 'user.logged_in',
       userId,
@@ -253,7 +263,7 @@ export async function publishUserLoggedIn(userId, email, traceId, ipAddress = nu
       },
     };
 
-    await client.pubsub.publish(config.dapr.pubsubName, 'user.logged_in', eventData);
+    await provider.publishEvent('user.logged_in', eventData, traceId);
 
     logger.info('Published user.logged_in event', null, {
       operation: 'event_publish',
@@ -281,9 +291,9 @@ export async function publishUserLoggedIn(userId, email, traceId, ipAddress = nu
  * @returns {Promise<void>}
  */
 export async function publishUserLoggedOut(userId, email, traceId) {
-  const client = getDaprClient();
-  if (!client) {
-    logger.debug('Dapr disabled, skipping event publish', {
+  const provider = getProvider();
+  if (!provider) {
+    logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
       eventType: 'user.logged_out',
       userId,
@@ -310,7 +320,7 @@ export async function publishUserLoggedOut(userId, email, traceId) {
       },
     };
 
-    await client.pubsub.publish(config.dapr.pubsubName, 'user.logged_out', eventData);
+    await provider.publishEvent('user.logged_out', eventData, traceId);
 
     logger.info('Published user.logged_out event', null, {
       operation: 'event_publish',
@@ -339,9 +349,9 @@ export async function publishUserLoggedOut(userId, email, traceId) {
  * @returns {Promise<void>}
  */
 export async function publishUserDeactivated(userId, traceId, deactivatedBy = null, reason = null) {
-  const client = getDaprClient();
-  if (!client) {
-    logger.debug('Dapr disabled, skipping event publish', {
+  const provider = getProvider();
+  if (!provider) {
+    logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
       eventType: 'user.deactivated',
       userId,
@@ -369,7 +379,7 @@ export async function publishUserDeactivated(userId, traceId, deactivatedBy = nu
       },
     };
 
-    await client.pubsub.publish(config.dapr.pubsubName, 'user.deactivated', eventData);
+    await provider.publishEvent('user.deactivated', eventData, traceId);
 
     logger.info('Published user.deactivated event', null, {
       operation: 'event_publish',
@@ -397,9 +407,9 @@ export async function publishUserDeactivated(userId, traceId, deactivatedBy = nu
  * @returns {Promise<void>}
  */
 export async function publishUserReactivated(userId, traceId, reactivatedBy = null) {
-  const client = getDaprClient();
-  if (!client) {
-    logger.debug('Dapr disabled, skipping event publish', {
+  const provider = getProvider();
+  if (!provider) {
+    logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
       eventType: 'user.reactivated',
       userId,
@@ -426,7 +436,7 @@ export async function publishUserReactivated(userId, traceId, reactivatedBy = nu
       },
     };
 
-    await client.pubsub.publish(config.dapr.pubsubName, 'user.reactivated', eventData);
+    await provider.publishEvent('user.reactivated', eventData, traceId);
 
     logger.info('Published user.reactivated event', null, {
       operation: 'event_publish',

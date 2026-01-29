@@ -9,12 +9,14 @@ Azure App Service **does not have native Dapr support**. For production workload
 The user-service is configured to run **without Dapr** on Azure App Service. All service-to-service communication uses direct HTTP calls.
 
 ### What's Missing Without Dapr:
+
 - ❌ Service-to-service invocation via Dapr
 - ❌ Pub/sub messaging
 - ❌ State management via Dapr
 - ❌ Secrets management via Dapr
 
 ### What Still Works:
+
 - ✅ Direct MongoDB connections
 - ✅ Direct HTTP endpoints
 - ✅ Environment variables from App Service
@@ -23,11 +25,13 @@ The user-service is configured to run **without Dapr** on Azure App Service. All
 ## Option 1: Continue with App Service (Current)
 
 **Pros:**
+
 - Simple deployment
 - Lower cost for single service
 - Familiar Azure PaaS experience
 
 **Cons:**
+
 - No Dapr features
 - Manual service discovery
 - Need to handle retries, circuit breakers manually
@@ -38,6 +42,7 @@ Environment variables are set directly in App Service settings.
 ## Option 2: Migrate to Azure Container Apps (Recommended)
 
 **Pros:**
+
 - ✅ Native Dapr support
 - ✅ Better for microservices
 - ✅ Scale to zero
@@ -45,12 +50,14 @@ Environment variables are set directly in App Service settings.
 - ✅ Built-in service mesh
 
 **Cons:**
+
 - Requires containerization
 - Different deployment model
 
 ### Migration Steps:
 
 1. **Update Bicep for Container Apps:**
+
 ```bash
 # I can create a new bicep template: infra/bicep/main-container-apps.bicep
 ```
@@ -67,12 +74,14 @@ Environment variables are set directly in App Service settings.
 ### Estimated Cost Comparison:
 
 **App Service (Current):**
+
 - B1: ~$13/month
 - P1v3: ~$124/month
 
 **Container Apps:**
+
 - Consumption plan: Pay per use, scale to zero
-- ~$5-20/month for dev/staging
+- ~$5-20/month for dev
 - ~$50-100/month for production (depending on load)
 
 ## Recommendation
@@ -80,6 +89,7 @@ Environment variables are set directly in App Service settings.
 For xshopai with multiple microservices, **migrate to Azure Container Apps** to fully utilize Dapr.
 
 Would you like me to:
+
 1. Create Container Apps Bicep templates?
 2. Update workflows for container deployment?
 3. Add Dapr component configurations?

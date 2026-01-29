@@ -1136,10 +1136,10 @@ flowchart TB
     SBP --> SBSDK
     RMP --> RMSDK
 
-    DS --> RMQ
-    DS --> ASB
-    DS --> KAFKA
-    DS --> REDIS
+    DS -.-> RMQ
+    DS -.-> ASB
+    DS -.-> KAFKA
+    DS -.-> REDIS
     SBSDK --> ASB
     RMSDK --> RMQ
 
@@ -1150,6 +1150,12 @@ flowchart TB
     style RMP fill:#F59E0B,stroke:#D97706,color:#fff
     style DS fill:#10B981,stroke:#059669,color:#fff
 ```
+
+**Key Points:**
+
+- **DaprProvider** → Dapr Sidecar → **Any broker** (RabbitMQ, Service Bus, Kafka, Redis) via Dapr component config
+- **ServiceBusProvider** → Azure Service Bus SDK → **Azure Service Bus ONLY**
+- **RabbitMQProvider** → amqplib SDK → **RabbitMQ ONLY**
 
 #### 5.5.3 Deployment Configuration Matrix
 

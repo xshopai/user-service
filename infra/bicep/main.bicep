@@ -2,7 +2,7 @@
 @description('Location for all resources')
 param location string = resourceGroup().location
 
-@description('Environment name (dev, staging, prod)')
+@description('Environment name (dev, prod)')
 param environment string = 'dev'
 
 @description('Cosmos DB account name')

@@ -2,7 +2,7 @@
 # Deploy User Service to Azure Container Apps
 # ==============================================================================
 # This workflow deploys the user-service to Azure Container Apps.
-# 
+#
 # Prerequisites:
 # - Infrastructure Layer 4 must be deployed first (creates Container App)
 # - Azure credentials configured in GitHub secrets
@@ -19,17 +19,16 @@ on:
   workflow_dispatch:
     inputs:
       environment:
-        description: 'Target environment'
+        description: "Target environment"
         required: true
         type: choice
         options:
           - dev
-          - staging
           - prod
-        default: 'dev'
-      
+        default: "dev"
+
       skip_tests:
-        description: 'Skip tests (not recommended for prod)'
+        description: "Skip tests (not recommended for prod)"
         required: false
         type: boolean
         default: false
@@ -38,11 +37,11 @@ on:
     branches:
       - main
     paths:
-      - 'src/**'
-      - 'package.json'
-      - 'package-lock.json'
-      - 'Dockerfile'
-      - '.dockerignore'
+      - "src/**"
+      - "package.json"
+      - "package-lock.json"
+      - "Dockerfile"
+      - ".dockerignore"
 
 permissions:
   id-token: write
@@ -63,25 +62,25 @@ jobs:
       docker_context: .
       docker_target: production
       container_port: 8002
-      
+
       # Dapr configuration
       dapr_enabled: true
       dapr_app_protocol: http
       dapr_app_port: 8002
-      
+
       # Ingress configuration
       ingress_enabled: true
       ingress_external: true
-      
+
       # Resource allocation
-      cpu: '0.5'
-      memory: '1Gi'
+      cpu: "0.5"
+      memory: "1Gi"
       min_replicas: 1
       max_replicas: 3
-      
+
       # Health check
       health_probe_path: /health
-    
+
     secrets: inherit
 
   # ==============================================================================
@@ -92,7 +91,7 @@ jobs:
     needs: deploy
     runs-on: ubuntu-latest
     environment: ${{ inputs.environment || 'dev' }}
-    
+
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
@@ -112,7 +111,7 @@ jobs:
             --resource-group rg-xshopai-${{ inputs.environment || 'dev' }} \
             --query properties.configuration.ingress.fqdn \
             -o tsv)
-          
+
           echo "url=https://${APP_URL}" >> $GITHUB_OUTPUT
           echo "### Deployment URL: https://${APP_URL}" >> $GITHUB_STEP_SUMMARY
 
@@ -120,13 +119,13 @@ jobs:
         run: |
           echo "Waiting for service to stabilize..."
           sleep 15
-          
+
           HEALTH_URL="${{ steps.app-url.outputs.url }}/health"
           echo "Checking: $HEALTH_URL"
-          
+
           MAX_RETRIES=5
           RETRY_COUNT=0
-          
+
           while [ $RETRY_COUNT -lt $MAX_RETRIES ]; do
             RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL || echo "000")
             
@@ -160,7 +159,7 @@ jobs:
               sleep 10
             fi
           done
-          
+
           echo "❌ Health check failed after $MAX_RETRIES attempts"
           echo "### ⚠️ Deployment Warning" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
@@ -177,17 +176,17 @@ jobs:
         run: |
           BASE_URL="${{ steps.app-url.outputs.url }}"
           echo "Testing API endpoints..."
-          
+
           # Test version endpoint
           echo "Testing /version..."
           VERSION_RESPONSE=$(curl -s "${BASE_URL}/version")
           echo "Version: $VERSION_RESPONSE"
-          
+
           # Test readiness endpoint
           echo "Testing /health/ready..."
           READY_RESPONSE=$(curl -s "${BASE_URL}/health/ready")
           echo "Readiness: $READY_RESPONSE"
-          
+
           echo "### 🧪 API Tests" >> $GITHUB_STEP_SUMMARY
           echo "" >> $GITHUB_STEP_SUMMARY
           echo "**Version Endpoint:**" >> $GITHUB_STEP_SUMMARY
@@ -204,22 +203,22 @@ jobs:
         if: success()
         run: |
           echo "Verifying Dapr sidecar is enabled..."
-          
+
           DAPR_STATUS=$(az containerapp show \
             --name user-service \
             --resource-group rg-xshopai-${{ inputs.environment || 'dev' }} \
             --query properties.configuration.dapr.enabled \
             -o tsv)
-          
+
           DAPR_APP_ID=$(az containerapp show \
             --name user-service \
             --resource-group rg-xshopai-${{ inputs.environment || 'dev' }} \
             --query properties.configuration.dapr.appId \
             -o tsv)
-          
+
           echo "Dapr Enabled: $DAPR_STATUS"
           echo "Dapr App ID: $DAPR_APP_ID"
-          
+
           if [ "$DAPR_STATUS" = "true" ]; then
             echo "✅ Dapr sidecar is enabled"
             echo "" >> $GITHUB_STEP_SUMMARY
