@@ -39,6 +39,7 @@
   },
   "dependencies": {
     "@dapr/dapr": "^3.6.1",
+    "applicationinsights": "^3.13.0",
     "bcrypt": "^6.0.0",
     "cookie-parser": "^1.4.7",
     "dotenv": "^17.2.1",

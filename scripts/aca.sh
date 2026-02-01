@@ -207,6 +207,18 @@ if ! az containerapp env show --name "$CONTAINER_ENV" --resource-group "$RESOURC
 fi
 print_success "Container Apps Environment exists: $CONTAINER_ENV"
 
+# Check for Application Insights
+APP_INSIGHTS_NAME="appi-${PROJECT_NAME}-${ENVIRONMENT}-${SUFFIX}"
+APP_INSIGHTS_CONN_STRING=$(az monitor app-insights component show \
+    --app "$APP_INSIGHTS_NAME" \
+    --resource-group "$RESOURCE_GROUP" \
+    --query connectionString -o tsv 2>/dev/null || echo "")
+if [ -n "$APP_INSIGHTS_CONN_STRING" ]; then
+    print_success "Application Insights found: $APP_INSIGHTS_NAME"
+else
+    print_warning "Application Insights not found - telemetry will be disabled"
+fi
+
 # Check Cosmos DB Account
 if ! az cosmosdb show --name "$COSMOS_ACCOUNT" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
     print_error "Cosmos DB Account '$COSMOS_ACCOUNT' does not exist."
@@ -349,13 +361,18 @@ ACR_PASSWORD=$(az acr credential show --name "$ACR_NAME" --query "passwords[0].v
 
 # Build environment variables (using all configuration variables)
 ENV_VARS=("NODE_ENV=$NODE_ENV")
-ENV_VARS+=("NAME=$SERVICE_NAME")
+ENV_VARS+=("SERVICE_NAME=$SERVICE_NAME")
 ENV_VARS+=("VERSION=$SERVICE_VERSION")
 ENV_VARS+=("PORT=$APP_PORT")
 ENV_VARS+=("DATABASE_URL=$DB_CONNECTION")
 ENV_VARS+=("DAPR_HTTP_PORT=$DAPR_HTTP_PORT")
 ENV_VARS+=("DAPR_PUBSUB_NAME=$DAPR_PUBSUB_NAME")
 ENV_VARS+=("LOG_LEVEL=$LOG_LEVEL")
+
+# Application Insights (for distributed tracing)
+if [ -n "$APP_INSIGHTS_CONN_STRING" ]; then
+    ENV_VARS+=("APPLICATIONINSIGHTS_CONNECTION_STRING=$APP_INSIGHTS_CONN_STRING")
+fi
 
 # Check if container app exists
 if az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$RESOURCE_GROUP" &> /dev/null; then
@@ -383,15 +400,16 @@ else
         --registry-password "$ACR_PASSWORD" \
         --target-port $APP_PORT \
         --ingress external \
-        --min-replicas 1 \
-        --max-replicas 5 \
-        --cpu 0.5 \
-        --memory 1.0Gi \
+        --min-replicas 2 \
+        --max-replicas 10 \
+        --cpu 1.0 \
+        --memory 2.0Gi \
         --enable-dapr \
         --dapr-app-id "$SERVICE_NAME" \
         --dapr-app-port $APP_PORT \
         --env-vars "${ENV_VARS[@]}" \
         ${IDENTITY_ID:+--user-assigned "$IDENTITY_ID"} \
+        --tags "project=$PROJECT_NAME" "environment=$ENVIRONMENT" "suffix=$SUFFIX" "service=$SERVICE_NAME" \
         --output none
     
     print_success "Container app created"
