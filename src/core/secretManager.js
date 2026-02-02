@@ -1,8 +1,20 @@
 /**
- * Secret Management Service
- * Provides secret management using Dapr's secret store building block.
+ * Secret Manager Utility
+ * Manages secrets retrieval using Dapr Secret Store building block
  *
- * NOTE: Environment variables are loaded in server.js before this module is imported
+ * Naming Convention:
+ * - Application code uses UPPER_SNAKE_CASE environment variables
+ * - Local dev (.env, .dapr/secrets.json) uses UPPER_SNAKE_CASE
+ * - Azure Key Vault uses lower-kebab-case (aca.sh translates at deployment time)
+ *
+ * User Service Required Secrets:
+ * - COSMOS_ACCOUNT_CONNECTION : Cosmos DB (MongoDB API) connection string
+ * - JWT_SECRET                : JWT signing secret
+ * - APPINSIGHTS_CONNECTION    : Application Insights connection string
+ * - SERVICE_AUTH_TOKEN        : Auth service token
+ * - SERVICE_ADMIN_TOKEN       : Admin service token
+ * - SERVICE_ORDER_TOKEN       : Order service token
+ * - SERVICE_WEBBFF_TOKEN      : Web BFF token
  */
 
 import { DaprClient } from '@dapr/dapr';
@@ -13,8 +25,8 @@ class SecretManager {
   constructor() {
     this.daprHost = config.dapr.host;
     this.daprPort = config.dapr.httpPort;
-    // Standard Dapr component name for secret store
     this.secretStoreName = 'secretstore';
+    this._cache = {};
 
     logger.info('Secret manager initialized', {
       event: 'secret_manager_init',
@@ -23,129 +35,75 @@ class SecretManager {
   }
 
   /**
-   * Get a secret value from Dapr secret store
+   * Get a secret value (UPPER_SNAKE_CASE key).
+   * Tries Dapr first, falls back to env var.
    *
-   * Note: Secret names use hyphens (not underscores) for Azure Key Vault compatibility.
-   * Both local secrets.json and Azure Key Vault use the same naming convention.
-   *
-   * @param {string} secretName - Name of the secret to retrieve (use hyphens, e.g., 'mongodb-host')
+   * @param {string} key - Secret key (e.g., 'JWT_SECRET')
    * @returns {Promise<string|null>} Secret value or null if not found
    */
-  async getSecret(secretName) {
+  async getSecret(key) {
+    // Check cache
+    if (this._cache[key]) {
+      return this._cache[key];
+    }
+
+    let value = null;
+
+    // Try Dapr Secret Store first
     try {
       const client = new DaprClient({
         daprHost: this.daprHost,
         daprPort: this.daprPort,
       });
 
-      const response = await client.secret.get(this.secretStoreName, secretName);
+      const response = await client.secret.get(this.secretStoreName, key);
 
-      // Dapr returns an object like { secretName: 'value' }
-      if (response && secretName in response) {
-        const value = response[secretName];
-        logger.debug('Retrieved secret from Dapr', {
-          event: 'secret_retrieved',
-          secretName,
-          source: 'dapr',
-          store: this.secretStoreName,
-        });
-        return String(value);
+      if (response && key in response) {
+        value = String(response[key]);
+        logger.debug(`Secret '${key}' loaded from Dapr`);
       }
-
-      logger.error('Secret not found in Dapr store', {
-        event: 'secret_not_found',
-        secretName,
-        store: this.secretStoreName,
-      });
-      return null;
     } catch (error) {
-      logger.error(`Failed to get secret from Dapr: ${error.message}`, {
-        event: 'secret_retrieval_error',
-        secretName,
-        error: error.message,
-        store: this.secretStoreName,
-      });
-      throw error;
+      logger.debug(`Dapr lookup failed for '${key}': ${error.message}`);
     }
+
+    // Fallback to environment variable
+    if (!value) {
+      value = process.env[key];
+      if (value) {
+        logger.debug(`Secret '${key}' loaded from env`);
+      }
+    }
+
+    if (value) {
+      this._cache[key] = value;
+      return value;
+    }
+
+    return null;
   }
 
   /**
-   * Get database configuration from secrets or environment variables
-   *
-   * Priority order:
-   * 1. DATABASE_URL from Dapr secret store (consistent with inventory-service)
-   * 2. DATABASE_URL from environment variable (fallback for non-Dapr mode)
-   *
-   * DATABASE_URL format: mongodb://username:password@host:port/database?authSource=admin
+   * Get MongoDB database configuration.
    *
    * @returns {Promise<Object>} Database connection parameters
    */
   async getDatabaseConfig() {
-    // Try Dapr secret store first (consistent with inventory-service pattern)
-    // Note: DATABASE_URL contains underscores which Azure Key Vault doesn't support,
-    // so we expect this to fail on ACA and fall back to env var (which is the intended behavior)
-    try {
-      const databaseUrl = await this.getSecretSilent('DATABASE_URL');
-      if (databaseUrl) {
-        logger.info('Using DATABASE_URL from Dapr secret store');
-        return this._parseDatabaseUrl(databaseUrl);
-      }
-    } catch (error) {
-      logger.debug('DATABASE_URL not found in Dapr secret store, checking env var');
+    // Try MONGODB_URI first (set by aca.sh)
+    let uri = process.env.MONGODB_URI;
+
+    // Fall back to COSMOS_ACCOUNT_CONNECTION via Dapr
+    if (!uri) {
+      uri = await this.getSecret('COSMOS_ACCOUNT_CONNECTION');
     }
 
-    // Fallback to DATABASE_URL env var (expected on ACA since Key Vault doesn't allow underscores)
-    const envDatabaseUrl = process.env.DATABASE_URL;
-    if (envDatabaseUrl) {
-      logger.info('Using DATABASE_URL from environment variable');
-      return this._parseDatabaseUrl(envDatabaseUrl);
+    if (!uri) {
+      throw new Error(
+        'MongoDB connection string not found. ' +
+        'Set MONGODB_URI env var or COSMOS_ACCOUNT_CONNECTION in Dapr secret store.'
+      );
     }
 
-    throw new Error('DATABASE_URL not found. Set it in Dapr secrets.json or as an environment variable.');
-  }
-
-  /**
-   * Get a secret value silently (debug level logging only)
-   * Used for secrets that are expected to fail on certain environments (e.g., ACA with Key Vault)
-   *
-   * @param {string} secretName - Name of the secret to retrieve
-   * @returns {Promise<string|null>} Secret value or null if not found
-   */
-  async getSecretSilent(secretName) {
-    try {
-      const client = new DaprClient({
-        daprHost: this.daprHost,
-        daprPort: this.daprPort,
-      });
-
-      const response = await client.secret.get(this.secretStoreName, secretName);
-
-      if (response && secretName in response) {
-        const value = response[secretName];
-        logger.debug('Retrieved secret from Dapr', {
-          event: 'secret_retrieved',
-          secretName,
-          source: 'dapr',
-          store: this.secretStoreName,
-        });
-        return String(value);
-      }
-
-      logger.debug('Secret not found in Dapr store', {
-        event: 'secret_not_found',
-        secretName,
-        store: this.secretStoreName,
-      });
-      return null;
-    } catch (error) {
-      // Log at debug level since this is expected for secrets with underscores on ACA
-      logger.debug(`Secret not available from Dapr (expected for ${secretName} on ACA)`, {
-        event: 'secret_fallback',
-        secretName,
-        store: this.secretStoreName,
-      });
-      return null;
-    }
+    return this._parseDatabaseUrl(uri);
   }
 
   /**
@@ -159,41 +117,90 @@ class SecretManager {
       const authSource = parsed.searchParams.get('authSource') || 'admin';
 
       return {
+        connectionString: url,
         host: parsed.hostname || '127.0.0.1',
         port: parseInt(parsed.port || '27018', 10),
         username: parsed.username || '',
         password: parsed.password || '',
-        database: parsed.pathname.replace('/', '') || 'user_service_db',
+        database: parsed.pathname.replace('/', '') || process.env.MONGODB_DB_NAME || 'user_service_db',
         authSource,
       };
     } catch (error) {
-      logger.error(`Invalid DATABASE_URL format: ${error.message}`);
-      throw new Error('Invalid DATABASE_URL format. Expected: mongodb://user:pass@host:port/database?authSource=admin');
+      logger.error(`Invalid database URL format: ${error.message}`);
+      throw new Error('Invalid database URL format');
     }
   }
 
   /**
-   * Get JWT configuration from secrets
-   * Only JWT_SECRET is truly secret - algorithm and expiration are just config.
+   * Get JWT configuration.
    *
    * @returns {Promise<Object>} JWT configuration parameters
    */
   async getJwtConfig() {
-    const secret = await this.getSecret('JWT_SECRET');
+    let secret = process.env.JWT_SECRET || await this.getSecret('JWT_SECRET');
+
+    if (!secret) {
+      logger.warn('JWT secret not found, using default (NOT SECURE)');
+      secret = 'default-secret-key';
+    }
 
     return {
-      secret: secret || 'default-secret-key',
+      secret,
       algorithm: process.env.JWT_ALGORITHM || 'HS256',
       expiration: process.env.JWT_EXPIRATION || '3600',
       issuer: process.env.JWT_ISSUER || 'auth-service',
       audience: process.env.JWT_AUDIENCE || 'xshopai-platform',
     };
   }
+
+  /**
+   * Get service tokens for service-to-service auth.
+   *
+   * @returns {Promise<Object>} Service tokens
+   */
+  async getServiceTokens() {
+    const tokenKeys = {
+      'auth-service': 'SERVICE_AUTH_TOKEN',
+      'admin-service': 'SERVICE_ADMIN_TOKEN',
+      'order-service': 'SERVICE_ORDER_TOKEN',
+      'web-bff': 'SERVICE_WEBBFF_TOKEN',
+    };
+
+    const tokens = {};
+    for (const [service, key] of Object.entries(tokenKeys)) {
+      const value = process.env[key] || await this.getSecret(key);
+      if (value) {
+        tokens[service] = value;
+      } else {
+        logger.warn(`Token for '${service}' not configured (key: ${key})`);
+      }
+    }
+
+    return tokens;
+  }
+
+  /**
+   * Get Application Insights connection string.
+   *
+   * @returns {Promise<string|null>} Connection string or null
+   */
+  async getAppInsightsConnectionString() {
+    // Check standard Azure SDK env var first
+    const connString = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING;
+    if (connString) {
+      return connString;
+    }
+
+    // Fall back to Dapr secretstore / env var
+    return this.getSecret('APPINSIGHTS_CONNECTION');
+  }
 }
 
-// Global instance
+// Singleton
 export const secretManager = new SecretManager();
 
-// Helper functions for easy access
+// Convenience functions
 export const getDatabaseConfig = () => secretManager.getDatabaseConfig();
 export const getJwtConfig = () => secretManager.getJwtConfig();
+export const getServiceTokens = () => secretManager.getServiceTokens();
+export const getAppInsightsConnectionString = () => secretManager.getAppInsightsConnectionString();
