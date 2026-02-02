@@ -25,10 +25,10 @@ const validationRules = {
     },
     errorMessage: 'PORT must be a valid port number (1-65535)',
   },
-  NAME: {
+  SERVICE_NAME: {
     required: true,
     validator: (value) => value && value.length > 0,
-    errorMessage: 'NAME must be a non-empty string',
+    errorMessage: 'SERVICE_NAME must be a non-empty string',
   },
   VERSION: {
     required: true,

@@ -8,7 +8,7 @@
 
 export default {
   service: {
-    name: process.env.NAME || 'user-service',
+    name: process.env.SERVICE_NAME || 'user-service',
     version: process.env.VERSION || '1.0.0',
     port: parseInt(process.env.PORT, 10) || 8002,
     host: process.env.HOST || '0.0.0.0',

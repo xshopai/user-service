@@ -359,20 +359,42 @@ print_header "Step 2: Deploying Container App"
 # Get ACR credentials
 ACR_PASSWORD=$(az acr credential show --name "$ACR_NAME" --query "passwords[0].value" -o tsv)
 
-# Build environment variables (using all configuration variables)
-ENV_VARS=("NODE_ENV=$NODE_ENV")
-ENV_VARS+=("SERVICE_NAME=$SERVICE_NAME")
-ENV_VARS+=("VERSION=$SERVICE_VERSION")
-ENV_VARS+=("PORT=$APP_PORT")
-ENV_VARS+=("DATABASE_URL=$DB_CONNECTION")
-ENV_VARS+=("DAPR_HTTP_PORT=$DAPR_HTTP_PORT")
-ENV_VARS+=("DAPR_PUBSUB_NAME=$DAPR_PUBSUB_NAME")
-ENV_VARS+=("LOG_LEVEL=$LOG_LEVEL")
+# Retrieve Application Insights connection string from Key Vault
+print_info "Retrieving Application Insights connection string from Key Vault..."
+APP_INSIGHTS_CONN=$(az keyvault secret show --vault-name "$KEY_VAULT" --name "xshopai-appinsights-connection" --query "value" -o tsv 2>/dev/null || echo "")
+[ -n "$APP_INSIGHTS_CONN" ] && print_success "Application Insights connection string retrieved" || print_warning "Application Insights not configured (telemetry disabled)"
 
-# Application Insights (for distributed tracing)
-if [ -n "$APP_INSIGHTS_CONN_STRING" ]; then
-    ENV_VARS+=("APPLICATIONINSIGHTS_CONNECTION_STRING=$APP_INSIGHTS_CONN_STRING")
-fi
+# Retrieve service tokens from Key Vault
+# These are passed as env vars to avoid race conditions with Dapr sidecar startup
+print_info "Retrieving service tokens from Key Vault..."
+SVC_AUTH_TOKEN=$(az keyvault secret show --vault-name "$KEY_VAULT" --name "xshopai-svc-auth-token" --query "value" -o tsv 2>/dev/null || echo "")
+SVC_ADMIN_TOKEN=$(az keyvault secret show --vault-name "$KEY_VAULT" --name "xshopai-svc-admin-token" --query "value" -o tsv 2>/dev/null || echo "")
+SVC_ORDER_TOKEN=$(az keyvault secret show --vault-name "$KEY_VAULT" --name "xshopai-svc-order-token" --query "value" -o tsv 2>/dev/null || echo "")
+SVC_WEBBFF_TOKEN=$(az keyvault secret show --vault-name "$KEY_VAULT" --name "xshopai-svc-webbff-token" --query "value" -o tsv 2>/dev/null || echo "")
+print_success "Service tokens retrieved"
+
+# Environment variables for the container
+# Note: DATABASE_URL is passed as env var because Dapr sidecar isn't ready during startup
+# Service tokens are also passed as env vars to avoid race condition with Dapr sidecar startup
+ENV_VARS=(
+    "NODE_ENV=$NODE_ENV"
+    "SERVICE_NAME=$SERVICE_NAME"
+    "VERSION=$SERVICE_VERSION"
+    "PORT=$APP_PORT"
+    "MESSAGING_PROVIDER=dapr"
+    "DATABASE_URL=$DB_CONNECTION"
+    "DAPR_HTTP_PORT=$DAPR_HTTP_PORT"
+    "DAPR_GRPC_PORT=$DAPR_GRPC_PORT"
+    "DAPR_PUBSUB_NAME=$DAPR_PUBSUB_NAME"
+    "LOG_LEVEL=$LOG_LEVEL"
+    "OTEL_SERVICE_NAME=$SERVICE_NAME"
+    "OTEL_RESOURCE_ATTRIBUTES=service.version=$SERVICE_VERSION"
+    "APPLICATIONINSIGHTS_CONNECTION_STRING=$APP_INSIGHTS_CONN"
+    "XSHOPAI_SVC_AUTH_TOKEN=$SVC_AUTH_TOKEN"
+    "XSHOPAI_SVC_ADMIN_TOKEN=$SVC_ADMIN_TOKEN"
+    "XSHOPAI_SVC_ORDER_TOKEN=$SVC_ORDER_TOKEN"
+    "XSHOPAI_SVC_WEBBFF_TOKEN=$SVC_WEBBFF_TOKEN"
+)
 
 # Check if container app exists
 if az containerapp show --name "$CONTAINER_APP_NAME" --resource-group "$RESOURCE_GROUP" &> /dev/null; then

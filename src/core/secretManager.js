@@ -82,8 +82,10 @@ class SecretManager {
    */
   async getDatabaseConfig() {
     // Try Dapr secret store first (consistent with inventory-service pattern)
+    // Note: DATABASE_URL contains underscores which Azure Key Vault doesn't support,
+    // so we expect this to fail on ACA and fall back to env var (which is the intended behavior)
     try {
-      const databaseUrl = await this.getSecret('DATABASE_URL');
+      const databaseUrl = await this.getSecretSilent('DATABASE_URL');
       if (databaseUrl) {
         logger.info('Using DATABASE_URL from Dapr secret store');
         return this._parseDatabaseUrl(databaseUrl);
@@ -92,7 +94,7 @@ class SecretManager {
       logger.debug('DATABASE_URL not found in Dapr secret store, checking env var');
     }
 
-    // Fallback to DATABASE_URL env var (non-Dapr local dev mode)
+    // Fallback to DATABASE_URL env var (expected on ACA since Key Vault doesn't allow underscores)
     const envDatabaseUrl = process.env.DATABASE_URL;
     if (envDatabaseUrl) {
       logger.info('Using DATABASE_URL from environment variable');
@@ -100,6 +102,50 @@ class SecretManager {
     }
 
     throw new Error('DATABASE_URL not found. Set it in Dapr secrets.json or as an environment variable.');
+  }
+
+  /**
+   * Get a secret value silently (debug level logging only)
+   * Used for secrets that are expected to fail on certain environments (e.g., ACA with Key Vault)
+   *
+   * @param {string} secretName - Name of the secret to retrieve
+   * @returns {Promise<string|null>} Secret value or null if not found
+   */
+  async getSecretSilent(secretName) {
+    try {
+      const client = new DaprClient({
+        daprHost: this.daprHost,
+        daprPort: this.daprPort,
+      });
+
+      const response = await client.secret.get(this.secretStoreName, secretName);
+
+      if (response && secretName in response) {
+        const value = response[secretName];
+        logger.debug('Retrieved secret from Dapr', {
+          event: 'secret_retrieved',
+          secretName,
+          source: 'dapr',
+          store: this.secretStoreName,
+        });
+        return String(value);
+      }
+
+      logger.debug('Secret not found in Dapr store', {
+        event: 'secret_not_found',
+        secretName,
+        store: this.secretStoreName,
+      });
+      return null;
+    } catch (error) {
+      // Log at debug level since this is expected for secrets with underscores on ACA
+      logger.debug(`Secret not available from Dapr (expected for ${secretName} on ACA)`, {
+        event: 'secret_fallback',
+        secretName,
+        store: this.secretStoreName,
+      });
+      return null;
+    }
   }
 
   /**
