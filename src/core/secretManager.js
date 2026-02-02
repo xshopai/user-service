@@ -99,7 +99,7 @@ class SecretManager {
     if (!uri) {
       throw new Error(
         'MongoDB connection string not found. ' +
-        'Set MONGODB_URI env var or COSMOS_ACCOUNT_CONNECTION in Dapr secret store.'
+          'Set MONGODB_URI env var or COSMOS_ACCOUNT_CONNECTION in Dapr secret store.',
       );
     }
 
@@ -137,7 +137,7 @@ class SecretManager {
    * @returns {Promise<Object>} JWT configuration parameters
    */
   async getJwtConfig() {
-    let secret = process.env.JWT_SECRET || await this.getSecret('JWT_SECRET');
+    let secret = process.env.JWT_SECRET || (await this.getSecret('JWT_SECRET'));
 
     if (!secret) {
       logger.warn('JWT secret not found, using default (NOT SECURE)');
@@ -168,7 +168,7 @@ class SecretManager {
 
     const tokens = {};
     for (const [service, key] of Object.entries(tokenKeys)) {
-      const value = process.env[key] || await this.getSecret(key);
+      const value = process.env[key] || (await this.getSecret(key));
       if (value) {
         tokens[service] = value;
       } else {
