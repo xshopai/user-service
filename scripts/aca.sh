@@ -286,8 +286,12 @@ fi
 # Parse connection string to extract parts and append database name
 # Cosmos DB connection strings are in format: mongodb://accountname:key@accountname.mongo.cosmos.azure.com:10255/?ssl=true...
 # We need to add the database name before the query params
-if [[ "$COSMOS_CONNECTION_STRING" == *"?"* ]]; then
-    # Has query params - insert db name before ?
+# Note: Connection string may have trailing / before ? (e.g., :10255/?ssl=true)
+if [[ "$COSMOS_CONNECTION_STRING" == *"/?"* ]]; then
+    # Has /? pattern - replace /? with /dbname?
+    DB_CONNECTION="${COSMOS_CONNECTION_STRING/\/\?//${DB_NAME}?}"
+elif [[ "$COSMOS_CONNECTION_STRING" == *"?"* ]]; then
+    # Has query params but no trailing slash - insert db name before ?
     DB_CONNECTION="${COSMOS_CONNECTION_STRING/\?//${DB_NAME}?}"
 else
     # No query params - just append db name
