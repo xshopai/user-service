@@ -88,18 +88,18 @@ class SecretManager {
    * @returns {Promise<Object>} Database connection parameters
    */
   async getDatabaseConfig() {
-    // Try MONGODB_URI first (set by aca.sh)
-    let uri = process.env.MONGODB_URI;
+    // Try Dapr secret store first (works in both local and Azure)
+    let uri = await this.getSecret('MONGODB_URI');
 
-    // Fall back to COSMOS_ACCOUNT_CONNECTION via Dapr
+    // Fall back to env var (for non-Dapr runs or ACA env var injection)
     if (!uri) {
-      uri = await this.getSecret('COSMOS_ACCOUNT_CONNECTION');
+      uri = process.env.MONGODB_URI;
     }
 
     if (!uri) {
       throw new Error(
         'MongoDB connection string not found. ' +
-          'Set MONGODB_URI env var or COSMOS_ACCOUNT_CONNECTION in Dapr secret store.',
+          'Set MONGODB_URI in Dapr secret store (.dapr/secrets.json) or as env var.',
       );
     }
 
