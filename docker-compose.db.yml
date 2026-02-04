@@ -1,0 +1,37 @@
+# Database-only Docker Compose for local development
+# Use this when running user-service locally with debugger
+#
+# Usage:
+#   docker compose -f docker-compose.db.yml up -d     # Start MongoDB
+#   docker compose -f docker-compose.db.yml down      # Stop MongoDB
+#   docker compose -f docker-compose.db.yml down -v   # Stop and remove volumes
+#
+# Seeder:
+#   Set in scripts/seed/.env:
+#   USER_SERVICE_DATABASE_URL=mongodb://admin:admin123@localhost:27018/user_service_db?authSource=admin
+#
+#   Then run:
+#   cd scripts/seed && npm run seed:user
+
+services:
+  user-mongodb:
+    image: mongo:8.0
+    container_name: user-mongodb
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: user_service_db
+    volumes:
+      - user_mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  user_mongodb_data:
+    name: user_mongodb_data
