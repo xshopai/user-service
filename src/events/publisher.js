@@ -15,11 +15,11 @@ import config from '../core/config.js';
 
 /**
  * Get the messaging provider instance
- * @returns {import('../messaging/provider.js').default} Messaging provider
+ * @returns {Promise<import('../messaging/provider.js').default>} Messaging provider
  */
-function getProvider() {
+async function getProvider() {
   try {
-    return getMessagingProvider();
+    return await getMessagingProvider();
   } catch (error) {
     logger.error('Failed to get messaging provider', null, {
       operation: 'messaging_init',
@@ -38,7 +38,7 @@ function getProvider() {
  * @returns {Promise<void>}
  */
 export async function publishUserCreated(user, traceId, ipAddress = null, userAgent = null) {
-  const provider = getProvider();
+  const provider = await getProvider();
   if (!provider) {
     logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
