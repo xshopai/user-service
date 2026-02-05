@@ -7,8 +7,8 @@
 import dotenv from 'dotenv';
 dotenv.config({ quiet: true });
 
-// Initialize Application Insights AFTER dotenv but BEFORE other imports
-import './instrumentation.js';
+// Initialize Zipkin tracing BEFORE other imports
+import './tracing.js';
 
 import validateConfig from './validators/config.validator.js';
 
