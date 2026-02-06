@@ -1555,7 +1555,7 @@ For deployments without Dapr (e.g., Azure App Service), calling services make di
 const response = await fetch(`${USER_SERVICE_URL}/api/internal/users/email/${email}`, {
   method: 'GET',
   headers: {
-    'X-Service-Token': process.env.USER_SERVICE_TOKEN,
+    'X-Service-Token': process.env.SERVICE_USER_TOKEN,
     'X-Correlation-ID': correlationId,
     'X-Service-Name': 'auth-service',
     'Content-Type': 'application/json',
@@ -1575,7 +1575,7 @@ const response = await daprClient.invoker.invoke(
   HttpMethod.GET,
   undefined,
   {
-    'X-Service-Token': process.env.USER_SERVICE_TOKEN,
+    'X-Service-Token': process.env.SERVICE_USER_TOKEN,
     'X-Correlation-ID': correlationId,
     'X-Service-Name': 'auth-service',
   },

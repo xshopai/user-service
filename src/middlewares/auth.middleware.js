@@ -2,16 +2,16 @@ import jwt from 'jsonwebtoken';
 import User from '../models/user.model.js';
 import logger from '../core/logger.js';
 import ErrorResponse from '../core/errors.js';
-import { getJwtConfig } from '../core/secretManager.js';
 
-// Cache JWT config to avoid repeated Dapr calls
-let jwtConfigCache = null;
-const getJwtSecret = async () => {
-  if (!jwtConfigCache) {
-    jwtConfigCache = await getJwtConfig();
-  }
-  return jwtConfigCache.secret;
-};
+// Get JWT config from environment variables
+const getJwtConfig = () => ({
+  secret: process.env.JWT_SECRET,
+  issuer: process.env.JWT_ISSUER || 'auth-service',
+  audience: process.env.JWT_AUDIENCE || 'xshopai-platform',
+});
+
+// Get JWT secret from environment
+const getJwtSecret = () => process.env.JWT_SECRET;
 
 // Cache service tokens configuration
 let serviceTokensCache = null;
@@ -19,14 +19,15 @@ let serviceTokensCache = null;
 /**
  * Get service token configuration from environment.
  * Used for validating incoming requests from other services.
+ * Uses SERVICE_{NAME}_TOKEN pattern (e.g., SERVICE_AUTH_TOKEN).
  */
 function getServiceTokens() {
   if (!serviceTokensCache) {
     serviceTokensCache = {
-      'auth-service': process.env.AUTH_SERVICE_TOKEN,
-      'admin-service': process.env.ADMIN_SERVICE_TOKEN,
-      'order-service': process.env.ORDER_SERVICE_TOKEN,
-      'web-bff': process.env.WEB_BFF_TOKEN,
+      'auth-service': process.env.SERVICE_AUTH_TOKEN,
+      'admin-service': process.env.SERVICE_ADMIN_TOKEN,
+      'order-service': process.env.SERVICE_ORDER_TOKEN,
+      'web-bff': process.env.SERVICE_WEBBFF_TOKEN,
     };
     // Filter out undefined/null values
     serviceTokensCache = Object.fromEntries(Object.entries(serviceTokensCache).filter(([, v]) => v));
@@ -113,14 +114,14 @@ export async function requireAuth(req, res, next) {
       return next(new ErrorResponse('Unauthorized: No token found in Authorization header or cookies', 401));
     }
 
-    // Get JWT secret from Dapr secret store
-    const secret = await getJwtSecret();
+    // Get JWT secret from environment
+    const secret = getJwtSecret();
 
     // Verify token
     let decoded;
     try {
       // Get full JWT config for validation options
-      const jwtConfig = jwtConfigCache || (await getJwtConfig());
+      const jwtConfig = getJwtConfig();
       decoded = jwt.verify(token, secret, {
         issuer: jwtConfig.issuer,
         audience: jwtConfig.audience,
@@ -229,9 +230,9 @@ export async function optionalAuth(req, res, next) {
       return next();
     }
 
-    // Get JWT secret from Dapr secret store
-    const secret = await getJwtSecret();
-    const jwtConfig = jwtConfigCache || (await getJwtConfig());
+    // Get JWT secret from environment
+    const secret = getJwtSecret();
+    const jwtConfig = getJwtConfig();
 
     try {
       const decoded = jwt.verify(token, secret, {

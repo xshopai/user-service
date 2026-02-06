@@ -49,10 +49,11 @@ LOG_FILE_PATH=./logs/user-service.log
 DATABASE_URL=mongodb://admin:admin123@localhost:27018/user_service_db?authSource=admin
 
 # Service Tokens (for service-to-service communication)
-AUTH_SERVICE_TOKEN=svc-auth-service-4ff5876fc86cc45a18d88e5d
-ADMIN_SERVICE_TOKEN=svc-admin-service-4ff5876fc86cc45a18d88e5d
-ORDER_SERVICE_TOKEN=svc-order-service-4ff5876fc86cc45a18d88e5d
-WEB_BFF_TOKEN=svc-web-bff-4ff5876fc86cc45a18d88e5d
+# Pattern: SERVICE_{NAME}_TOKEN
+SERVICE_AUTH_TOKEN=svc-auth-service-4ff5876fc86cc45a18d88e5d
+SERVICE_ADMIN_TOKEN=svc-admin-service-4ff5876fc86cc45a18d88e5d
+SERVICE_ORDER_TOKEN=svc-order-service-4ff5876fc86cc45a18d88e5d
+SERVICE_WEBBFF_TOKEN=svc-web-bff-4ff5876fc86cc45a18d88e5d
 ```
 
 > **Note**:

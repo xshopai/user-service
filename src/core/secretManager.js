@@ -1,79 +1,37 @@
 /**
  * Secret Manager Utility
- * Manages secrets retrieval using Dapr Secret Store building block
+ * Manages secrets retrieval from environment variables
  *
- * Naming Convention:
- * - Application code uses UPPER_SNAKE_CASE environment variables
- * - Local dev (.env, .dapr/secrets.json) uses UPPER_SNAKE_CASE
- * - Azure Key Vault uses lower-kebab-case (aca.sh translates at deployment time)
- *
- * User Service Required Secrets:
- * - COSMOS_ACCOUNT_CONNECTION : Cosmos DB (MongoDB API) connection string
- * - JWT_SECRET                : JWT signing secret
- * - APPINSIGHTS_CONNECTION    : Application Insights connection string
- * - SERVICE_AUTH_TOKEN        : Auth service token
- * - SERVICE_ADMIN_TOKEN       : Admin service token
- * - SERVICE_ORDER_TOKEN       : Order service token
- * - SERVICE_WEBBFF_TOKEN      : Web BFF token
+ * User Service Required Secrets (from environment variables):
+ * - MONGODB_URI              : MongoDB connection string
+ * - JWT_SECRET               : JWT signing secret
+ * - APPLICATIONINSIGHTS_CONNECTION_STRING : Application Insights connection string
+ * - SERVICE_AUTH_TOKEN       : Auth service token
+ * - SERVICE_ADMIN_TOKEN      : Admin service token
+ * - SERVICE_ORDER_TOKEN      : Order service token
+ * - SERVICE_WEBBFF_TOKEN     : Web BFF token
  */
 
-import { DaprClient } from '@dapr/dapr';
 import logger from './logger.js';
-import config from './config.js';
 
 class SecretManager {
   constructor() {
-    this.daprHost = config.dapr.host;
-    this.daprPort = config.dapr.httpPort;
-    this.secretStoreName = 'secretstore';
     this._cache = {};
-
-    logger.info('Secret manager initialized', {
-      event: 'secret_manager_init',
-      secretStore: this.secretStoreName,
-    });
+    logger.info('Secret manager initialized (env-only mode)');
   }
 
   /**
-   * Get a secret value (UPPER_SNAKE_CASE key).
-   * Tries Dapr first, falls back to env var.
+   * Get a secret value from environment variables.
    *
    * @param {string} key - Secret key (e.g., 'JWT_SECRET')
-   * @returns {Promise<string|null>} Secret value or null if not found
+   * @returns {string|null} Secret value or null if not found
    */
-  async getSecret(key) {
-    // Check cache
+  getSecret(key) {
     if (this._cache[key]) {
       return this._cache[key];
     }
 
-    let value = null;
-
-    // Try Dapr Secret Store first
-    try {
-      const client = new DaprClient({
-        daprHost: this.daprHost,
-        daprPort: this.daprPort,
-      });
-
-      const response = await client.secret.get(this.secretStoreName, key);
-
-      if (response && key in response) {
-        value = String(response[key]);
-        logger.debug(`Secret '${key}' loaded from Dapr`);
-      }
-    } catch (error) {
-      logger.debug(`Dapr lookup failed for '${key}': ${error.message}`);
-    }
-
-    // Fallback to environment variable
-    if (!value) {
-      value = process.env[key];
-      if (value) {
-        logger.debug(`Secret '${key}' loaded from env`);
-      }
-    }
-
+    const value = process.env[key];
     if (value) {
       this._cache[key] = value;
       return value;
@@ -82,25 +40,19 @@ class SecretManager {
     return null;
   }
 
+    return null;
+  }
+
   /**
    * Get MongoDB database configuration.
    *
-   * @returns {Promise<Object>} Database connection parameters
+   * @returns {Object} Database connection parameters
    */
-  async getDatabaseConfig() {
-    // Try Dapr secret store first (works in both local and Azure)
-    let uri = await this.getSecret('MONGODB_URI');
-
-    // Fall back to env var (for non-Dapr runs or ACA env var injection)
-    if (!uri) {
-      uri = process.env.MONGODB_URI;
-    }
+  getDatabaseConfig() {
+    const uri = process.env.MONGODB_URI;
 
     if (!uri) {
-      throw new Error(
-        'MongoDB connection string not found. ' +
-          'Set MONGODB_URI in Dapr secret store (.dapr/secrets.json) or as env var.',
-      );
+      throw new Error('MongoDB connection string not found. Set MONGODB_URI environment variable.');
     }
 
     return this._parseDatabaseUrl(uri);
@@ -134,14 +86,14 @@ class SecretManager {
   /**
    * Get JWT configuration.
    *
-   * @returns {Promise<Object>} JWT configuration parameters
+   * @returns {Object} JWT configuration parameters
    */
-  async getJwtConfig() {
-    let secret = process.env.JWT_SECRET || (await this.getSecret('JWT_SECRET'));
+  getJwtConfig() {
+    const secret = process.env.JWT_SECRET;
 
     if (!secret) {
-      logger.warn('JWT secret not found, using default (NOT SECURE)');
-      secret = 'default-secret-key';
+      logger.warn('JWT secret not found in environment');
+      throw new Error('JWT_SECRET environment variable is required');
     }
 
     return {
@@ -156,9 +108,9 @@ class SecretManager {
   /**
    * Get service tokens for service-to-service auth.
    *
-   * @returns {Promise<Object>} Service tokens
+   * @returns {Object} Service tokens
    */
-  async getServiceTokens() {
+  getServiceTokens() {
     const tokenKeys = {
       'auth-service': 'SERVICE_AUTH_TOKEN',
       'admin-service': 'SERVICE_ADMIN_TOKEN',
@@ -168,7 +120,7 @@ class SecretManager {
 
     const tokens = {};
     for (const [service, key] of Object.entries(tokenKeys)) {
-      const value = process.env[key] || (await this.getSecret(key));
+      const value = process.env[key];
       if (value) {
         tokens[service] = value;
       } else {
@@ -182,17 +134,10 @@ class SecretManager {
   /**
    * Get Application Insights connection string.
    *
-   * @returns {Promise<string|null>} Connection string or null
+   * @returns {string|null} Connection string or null
    */
-  async getAppInsightsConnectionString() {
-    // Check standard Azure SDK env var first
-    const connString = process.env.APPLICATIONINSIGHTS_CONNECTION_STRING;
-    if (connString) {
-      return connString;
-    }
-
-    // Fall back to Dapr secretstore / env var
-    return this.getSecret('APPINSIGHTS_CONNECTION');
+  getAppInsightsConnectionString() {
+    return process.env.APPLICATIONINSIGHTS_CONNECTION_STRING || null;
   }
 }
 
