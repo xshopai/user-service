@@ -200,6 +200,58 @@ export const getUserById = asyncHandler(async (req, res, next) => {
   }
 });
 
+// @desc    Batch get users by IDs
+// @route   POST /users/batch
+// @access  Public (service-to-service)
+export const batchGetUsers = asyncHandler(async (req, res, next) => {
+  const { userIds } = req.body;
+
+  // Validate input
+  if (!Array.isArray(userIds) || userIds.length === 0) {
+    return next(new ErrorResponse('userIds must be a non-empty array', 400, 'INVALID_INPUT'));
+  }
+
+  // Limit batch size to prevent abuse
+  if (userIds.length > 100) {
+    return next(new ErrorResponse('Maximum 100 userIds per request', 400, 'BATCH_SIZE_EXCEEDED'));
+  }
+
+  try {
+    // Fetch users by IDs (exclude password)
+    const users = await User.find({
+      _id: { $in: userIds },
+      isActive: true,
+    }).select('_id email firstName lastName roles createdAt');
+
+    // Create map for quick lookup
+    const userMap = {};
+    users.forEach((user) => {
+      userMap[user._id.toString()] = {
+        userId: user._id.toString(),
+        email: user.email,
+        firstName: user.firstName || '',
+        lastName: user.lastName || '',
+        fullName: `${user.firstName || ''} ${user.lastName || ''}`.trim() || 'Unknown User',
+        roles: user.roles,
+        createdAt: user.createdAt,
+      };
+    });
+
+    logger.info('Batch user lookup completed', {
+      requestedCount: userIds.length,
+      foundCount: users.length,
+      traceId: req.traceId,
+    });
+
+    res.status(200).json({
+      success: true,
+      data: userMap,
+    });
+  } catch (err) {
+    next(err);
+  }
+});
+
 // Test compatibility functions - aliases to existing functions
 
 // @desc    Deactivate account (set isActive to false)

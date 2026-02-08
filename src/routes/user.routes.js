@@ -6,6 +6,7 @@ import {
   updateUser,
   getUser,
   deleteUser,
+  batchGetUsers,
 } from '../controllers/user.controller.js';
 import { getAddresses, addAddress, updateAddress, removeAddress } from '../controllers/user.address.controller.js';
 import {
@@ -28,6 +29,7 @@ const router = express.Router();
 router.get('/findByEmail', findByEmail);
 router.get('/:id', getUserById);
 router.post('/', createUser);
+router.post('/batch', batchGetUsers);
 
 // Self-service routes (auth required)
 router.get('/', requireAuth, getUser); // get own profile
