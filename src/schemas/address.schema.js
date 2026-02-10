@@ -7,6 +7,12 @@ const addressSchema = new mongoose.Schema(
       enum: ['home', 'work', 'billing', 'shipping', 'other'],
       default: 'home',
     },
+    fullName: {
+      type: String,
+      required: true,
+      trim: true,
+      maxlength: [100, 'Full name must be less than 100 characters'],
+    },
     addressLine1: {
       type: String,
       required: true,

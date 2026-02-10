@@ -21,6 +21,7 @@ import {
   updateWishlistItem,
   removeFromWishlist,
 } from '../controllers/user.wishlist.controller.js';
+import { getPreferences, updatePreferences } from '../controllers/user.preferences.controller.js';
 import { requireAuth } from '../middlewares/auth.middleware.js';
 
 const router = express.Router();
@@ -53,5 +54,9 @@ router.get('/wishlist', requireAuth, getWishlist);
 router.post('/wishlist', requireAuth, addToWishlist);
 router.patch('/wishlist/:wishlistId', requireAuth, updateWishlistItem);
 router.delete('/wishlist/:wishlistId', requireAuth, removeFromWishlist);
+
+// Preferences management routes
+router.get('/preferences', requireAuth, getPreferences);
+router.patch('/preferences', requireAuth, updatePreferences);
 
 export default router;

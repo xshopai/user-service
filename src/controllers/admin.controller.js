@@ -157,13 +157,80 @@ export const getStats = asyncHandler(async (req, res, _next) => {
 });
 
 /**
- * @desc    Get all users (admin only)
+ * @desc    Get all users with pagination and filters (admin only)
  * @route   GET /admin/users
  * @access  Admin only
+ * @query   page - Page number (default: 1)
+ * @query   limit - Items per page (default: 20, max: 100)
+ * @query   email - Filter by email (partial match)
+ * @query   role - Filter by role (customer, admin)
+ * @query   isActive - Filter by active status (true, false)
+ * @query   isEmailVerified - Filter by verification status (true, false)
+ * @query   search - Search across first name, last name, email
  */
 export const getUsers = asyncHandler(async (req, res, _next) => {
-  const users = await User.find({}, '-password'); // Exclude password field
-  res.json(users);
+  // Pagination
+  const page = parseInt(req.query.page) || 1;
+  const limit = Math.min(parseInt(req.query.limit) || 20, 100); // Max 100 per page
+  const skip = (page - 1) * limit;
+
+  // Build filter query
+  const filter = {};
+
+  // Email filter (partial match)
+  if (req.query.email) {
+    filter.email = { $regex: req.query.email, $options: 'i' };
+  }
+
+  // Role filter
+  if (req.query.role) {
+    filter.roles = req.query.role;
+  }
+
+  // Active status filter
+  if (req.query.isActive !== undefined) {
+    filter.isActive = req.query.isActive === 'true';
+  }
+
+  // Email verification filter
+  if (req.query.isEmailVerified !== undefined) {
+    filter.isEmailVerified = req.query.isEmailVerified === 'true';
+  }
+
+  // Search across multiple fields
+  if (req.query.search) {
+    const searchRegex = { $regex: req.query.search, $options: 'i' };
+    filter.$or = [{ firstName: searchRegex }, { lastName: searchRegex }, { email: searchRegex }];
+  }
+
+  // Execute query with pagination
+  const [users, total] = await Promise.all([
+    User.find(filter, '-password').sort({ createdAt: -1 }).skip(skip).limit(limit).lean(),
+    User.countDocuments(filter),
+  ]);
+
+  const totalPages = Math.ceil(total / limit);
+
+  logger.info('Admin user list retrieved', {
+    adminId: req.user?._id,
+    page,
+    limit,
+    total,
+    filters: filter,
+    traceId: req.traceId,
+  });
+
+  res.json({
+    users,
+    pagination: {
+      page,
+      limit,
+      total,
+      totalPages,
+      hasNext: page < totalPages,
+      hasPrevious: page > 1,
+    },
+  });
 });
 
 /**
@@ -269,11 +336,23 @@ export const getUser = asyncHandler(async (req, res, next) => {
  */
 export const updateUser = asyncHandler(async (req, res, next) => {
   try {
+    const targetUserId = req.params.id;
+    const adminUserId = req.user?._id?.toString();
+
+    // Prevent admin from modifying their own role or active status
+    if (targetUserId === adminUserId) {
+      if (req.body.roles !== undefined || req.body.isActive === false) {
+        return next(
+          new ErrorResponse('Cannot modify your own role or deactivate your own account', 403, 'SELF_MODIFICATION'),
+        );
+      }
+    }
+
     // Check if isActive is being changed (for deactivate/reactivate events)
-    const currentUser = await User.findById(req.params.id).select('isActive');
+    const currentUser = await User.findById(targetUserId).select('isActive');
     const wasActive = currentUser?.isActive;
 
-    const result = await userService.updateUser(req.params.id, req.body, { isAdmin: true });
+    const result = await userService.updateUser(targetUserId, req.body, { isAdmin: true });
 
     // Extract client IP address
     const clientIP =
@@ -288,30 +367,29 @@ export const updateUser = asyncHandler(async (req, res, next) => {
     const userAgent = req.headers['user-agent'] || 'unknown';
 
     const traceId = req.traceId;
-    const adminId = req.user?._id?.toString();
 
     // Check if isActive status changed
     if ('isActive' in req.body && wasActive !== req.body.isActive) {
       if (req.body.isActive === false) {
         // Account deactivated by admin
-        await publishUserDeactivated(req.params.id, traceId, adminId, 'admin_action');
+        await publishUserDeactivated(targetUserId, traceId, adminUserId, 'admin_action');
         logger.info('Account deactivated by admin', {
-          targetUserId: req.params.id,
-          adminId,
+          targetUserId,
+          adminId: adminUserId,
           traceId,
         });
       } else if (req.body.isActive === true) {
         // Account reactivated by admin
-        await publishUserReactivated(req.params.id, traceId, adminId);
+        await publishUserReactivated(targetUserId, traceId, adminUserId);
         logger.info('Account reactivated by admin', {
-          targetUserId: req.params.id,
-          adminId,
+          targetUserId,
+          adminId: adminUserId,
           traceId,
         });
       }
     } else {
       // Regular admin update - publish user.updated event
-      await publishUserUpdated(result, traceId, adminId, clientIP, userAgent);
+      await publishUserUpdated(result, traceId, adminUserId, clientIP, userAgent);
     }
 
     res.json(result);
@@ -327,21 +405,27 @@ export const updateUser = asyncHandler(async (req, res, next) => {
  */
 export const deleteUser = asyncHandler(async (req, res, next) => {
   try {
-    // Get user info before deletion for event payload
-    const user = await User.findById(req.params.id).select('email');
-    const userId = req.params.id;
-    const userEmail = user?.email;
-    const adminId = req.user?._id?.toString();
+    const targetUserId = req.params.id;
+    const adminUserId = req.user?._id?.toString();
 
-    await userService.deleteUser(req.params.id);
+    // Prevent admin from deleting their own account
+    if (targetUserId === adminUserId) {
+      return next(new ErrorResponse('Cannot delete your own account', 403, 'SELF_DELETION'));
+    }
+
+    // Get user info before deletion for event payload
+    const user = await User.findById(targetUserId).select('email');
+    const userEmail = user?.email;
+
+    await userService.deleteUser(targetUserId);
 
     // Publish user.deleted event (PRD 4.16)
     const traceId = req.traceId;
-    await publishUserDeleted(userId, userEmail, traceId, adminId, 'admin_action');
+    await publishUserDeleted(targetUserId, userEmail, traceId, adminUserId, 'admin_action');
 
     logger.info('User deleted by admin', {
-      targetUserId: userId,
-      adminId,
+      targetUserId,
+      adminId: adminUserId,
       traceId,
     });
 

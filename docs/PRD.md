@@ -6,8 +6,7 @@
 2. [Scope](#2-scope)
 3. [User Stories](#3-user-stories)
 4. [Functional Requirements](#4-functional-requirements)
-5. [Traceability Matrix](#5-traceability-matrix)
-6. [Non-Functional Requirements](#6-non-functional-requirements)
+5. [Non-Functional Requirements](#5-non-functional-requirements)
 
 ---
 
@@ -26,16 +25,7 @@ The User Service is a core microservice within the xshopai e-commerce platform r
 | **Security & Privacy**       | GDPR-compliant user data management with encryption and audit trails     |
 | **Support Admin Operations** | Allow administrators to view and manage user accounts                    |
 
-### 1.3 Success Metrics
-
-| Metric                      | Target  | Description                                      |
-| --------------------------- | ------- | ------------------------------------------------ |
-| API Response Time (p95)     | < 100ms | 95th percentile response time for user queries   |
-| User Creation Success Rate  | > 98%   | Percentage of valid user creation requests       |
-| Profile Update Success Rate | > 99%   | Percentage of valid profile updates that succeed |
-| Service Availability        | 99.9%   | Uptime during business hours                     |
-
-### 1.4 Target Users
+### 1.3 Target Users
 
 | User              | Interaction                                                                   |
 | ----------------- | ----------------------------------------------------------------------------- |
@@ -526,45 +516,9 @@ The system shall publish events via Dapr Pub/Sub after user lifecycle operations
 
 ---
 
-## 5. Traceability Matrix
+## 5. Non-Functional Requirements
 
-> **Purpose:** This matrix provides a single snapshot view linking User Stories to their implementing requirements. Use this to verify coverage and track implementation status.
-
-| User Story                           | Story Title           | Requirements                                                                                                                          |
-| ------------------------------------ | --------------------- | ------------------------------------------------------------------------------------------------------------------------------------- |
-| [3.1](#31-profile-management)        | Profile Management    | [4.1](#41-get-user-profile), [4.2](#42-update-user-profile), [4.3](#43-delete-user-account), [4.17](#417-publish-user-events)         |
-| [3.2](#32-address-management)        | Address Management    | [4.4](#44-add-address), [4.5](#45-update-address), [4.6](#46-delete-address), [4.7](#47-list-addresses)                               |
-| [3.3](#33-payment-method-management) | Payment Method Mgmt   | [4.8](#48-add-payment-method), [4.9](#49-update-payment-method), [4.10](#410-delete-payment-method)                                   |
-| [3.4](#34-wishlist-management)       | Wishlist Management   | [4.11](#411-add-to-wishlist), [4.12](#412-remove-from-wishlist)                                                                       |
-| [3.5](#35-admin-user-management)     | Admin User Management | [4.13](#413-admin-list-users), [4.14](#414-admin-get-user-statistics), [4.15](#415-admin-update-user), [4.16](#416-admin-delete-user) |
-
-**Coverage Summary:**
-
-- Total User Stories: 5
-- Total Requirements: 17
-- Requirements without User Story: 0
-- User Stories without Requirements: 0
-
----
-
-## 6. Non-Functional Requirements
-
-### 6.1 Performance
-
-| Metric                  | Target     | Description                             |
-| ----------------------- | ---------- | --------------------------------------- |
-| API Response Time (p95) | < 100ms    | Profile queries and update operations   |
-| Throughput              | 1000 req/s | Sustained load during normal operations |
-
-### 6.2 Reliability
-
-| Metric                     | Target | Description                               |
-| -------------------------- | ------ | ----------------------------------------- |
-| Service Availability       | 99.9%  | Uptime during business hours              |
-| User Creation Success Rate | > 98%  | Valid requests that complete successfully |
-| Profile Update Success     | > 99%  | Valid updates that complete successfully  |
-
-### 6.3 Security
+### 5.1 Security
 
 | Requirement                                   | Priority |
 | --------------------------------------------- | -------- |
@@ -575,7 +529,7 @@ The system shall publish events via Dapr Pub/Sub after user lifecycle operations
 | No sensitive data (passwords, tokens) in logs | High     |
 | GDPR compliance (right to erasure)            | High     |
 
-### 6.4 Observability
+### 5.2 Observability
 
 | Requirement                                                         | Priority |
 | ------------------------------------------------------------------- | -------- |
