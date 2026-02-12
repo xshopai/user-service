@@ -1,5 +1,5 @@
 import User from '../models/user.model.js';
-import { asyncHandler } from '../middlewares/asyncHandler.js';
+import asyncHandler from '../middlewares/asyncHandler.js';
 import ErrorResponse from '../core/errors.js';
 import logger from '../core/logger.js';
 import { publishUserUpdated } from '../events/publisher.js';

@@ -2,7 +2,6 @@ import express from 'express';
 import cookieParser from 'cookie-parser';
 import mongoose from 'mongoose';
 
-import validateConfig from './validators/config.validator.js';
 import config from './core/config.js';
 import logger from './core/logger.js';
 import connectDB from './database/db.js';
@@ -13,8 +12,7 @@ import operationalRoutes from './routes/operational.routes.js';
 import traceContextMiddleware from './middlewares/traceContext.middleware.js';
 import { errorHandler } from './middlewares/errorHandler.middleware.js';
 
-// Validate configuration before starting
-validateConfig();
+// Configuration is validated by server.js before this module is imported
 const app = express();
 
 // Trust proxy for accurate IP address extraction
@@ -44,8 +42,9 @@ const HOST = config.service.host;
 // This is required because Dapr sidecar waits for the app to listen on the app port
 // before it becomes ready. If we wait for DB connection (which needs Dapr for secrets),
 // we create a deadlock: app waits for Dapr -> Dapr waits for app
+const displayHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
 app.listen(PORT, HOST, async () => {
-  logger.info(`User service HTTP server started on ${HOST}:${PORT} in ${config.service.nodeEnv} mode`, {
+  logger.info(`User service HTTP server started on ${displayHost}:${PORT} in ${config.service.nodeEnv} mode`, {
     service: config.service.name,
     version: config.service.version,
     dapr: {

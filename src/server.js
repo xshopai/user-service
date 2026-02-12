@@ -7,10 +7,11 @@
 import dotenv from 'dotenv';
 dotenv.config({ quiet: true });
 
-// Initialize Zipkin tracing BEFORE other imports
-import './tracing.js';
+// Initialize tracing AFTER dotenv loads (dynamic import to avoid hoisting)
+await import('./tracing.js');
 
-import validateConfig from './validators/config.validator.js';
+// Dynamic import to ensure env vars are loaded first
+const { default: validateConfig } = await import('./validators/config.validator.js');
 
 async function startServer() {
   try {
