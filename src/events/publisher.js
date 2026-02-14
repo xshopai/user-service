@@ -105,7 +105,7 @@ export async function publishUserCreated(user, traceId, ipAddress = null, userAg
  * @returns {Promise<void>}
  */
 export async function publishUserUpdated(user, traceId, updatedBy = null, ipAddress = null, userAgent = null) {
-  const provider = getProvider();
+  const provider = await getProvider();
   if (!provider) {
     logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
@@ -170,7 +170,7 @@ export async function publishUserUpdated(user, traceId, updatedBy = null, ipAddr
  * @returns {Promise<void>}
  */
 export async function publishUserDeleted(userId, traceId) {
-  const provider = getProvider();
+  const provider = await getProvider();
   if (!provider) {
     logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
@@ -228,7 +228,7 @@ export async function publishUserDeleted(userId, traceId) {
  * @returns {Promise<void>}
  */
 export async function publishUserLoggedIn(userId, email, traceId, ipAddress = null, userAgent = null) {
-  const provider = getProvider();
+  const provider = await getProvider();
   if (!provider) {
     logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
@@ -287,7 +287,7 @@ export async function publishUserLoggedIn(userId, email, traceId, ipAddress = nu
  * @returns {Promise<void>}
  */
 export async function publishUserLoggedOut(userId, email, traceId) {
-  const provider = getProvider();
+  const provider = await getProvider();
   if (!provider) {
     logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
@@ -345,7 +345,7 @@ export async function publishUserLoggedOut(userId, email, traceId) {
  * @returns {Promise<void>}
  */
 export async function publishUserDeactivated(userId, traceId, deactivatedBy = null, reason = null) {
-  const provider = getProvider();
+  const provider = await getProvider();
   if (!provider) {
     logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
@@ -403,7 +403,7 @@ export async function publishUserDeactivated(userId, traceId, deactivatedBy = nu
  * @returns {Promise<void>}
  */
 export async function publishUserReactivated(userId, traceId, reactivatedBy = null) {
-  const provider = getProvider();
+  const provider = await getProvider();
   if (!provider) {
     logger.debug('Messaging provider not available, skipping event publish', null, {
       operation: 'event_publish',
