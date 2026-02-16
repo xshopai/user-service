@@ -40,7 +40,7 @@ export const getStats = asyncHandler(async (req, res, _next) => {
 
   // Parallel aggregation queries for better performance
   const queries = [
-    // Total users count
+    // Total users count (all users)
     User.countDocuments({ isActive: { $ne: false } }),
 
     // Active users (logged in within last 30 days)
@@ -61,6 +61,27 @@ export const getStats = asyncHandler(async (req, res, _next) => {
         $lte: lastDayLastMonth,
       },
     }),
+
+    // Total customers count (only users with 'customer' role, excluding admins)
+    User.countDocuments({
+      isActive: { $ne: false },
+      roles: { $in: ['customer'], $nin: ['admin'] },
+    }),
+
+    // New customers this month (only users with 'customer' role)
+    User.countDocuments({
+      createdAt: { $gte: firstDayThisMonth },
+      roles: { $in: ['customer'], $nin: ['admin'] },
+    }),
+
+    // New customers last month (for customer growth calculation)
+    User.countDocuments({
+      createdAt: {
+        $gte: firstDayLastMonth,
+        $lte: lastDayLastMonth,
+      },
+      roles: { $in: ['customer'], $nin: ['admin'] },
+    }),
   ];
 
   // Add recent users query if requested
@@ -74,13 +95,30 @@ export const getStats = asyncHandler(async (req, res, _next) => {
   }
 
   const results = await Promise.all(queries);
-  const [totalUsers, activeUsers, newUsersThisMonth, newUsersLastMonth, recentUsersData] = results;
+  const [
+    totalUsers,
+    activeUsers,
+    newUsersThisMonth,
+    newUsersLastMonth,
+    totalCustomers,
+    newCustomersThisMonth,
+    newCustomersLastMonth,
+    recentUsersData,
+  ] = results;
 
-  // Calculate growth percentage
+  // Calculate growth percentage (all users)
   const growth =
     newUsersLastMonth > 0
       ? (((newUsersThisMonth - newUsersLastMonth) / newUsersLastMonth) * 100).toFixed(1)
       : newUsersThisMonth > 0
+        ? 100
+        : 0;
+
+  // Calculate customer growth percentage
+  const customerGrowth =
+    newCustomersLastMonth > 0
+      ? (((newCustomersThisMonth - newCustomersLastMonth) / newCustomersLastMonth) * 100).toFixed(1)
+      : newCustomersThisMonth > 0
         ? 100
         : 0;
 
@@ -89,6 +127,10 @@ export const getStats = asyncHandler(async (req, res, _next) => {
     active: activeUsers,
     newThisMonth: newUsersThisMonth,
     growth: parseFloat(growth),
+    // Customer-specific stats (excluding admins)
+    customers: totalCustomers,
+    newCustomersThisMonth: newCustomersThisMonth,
+    customerGrowth: parseFloat(customerGrowth),
   };
 
   // Add recent users if requested
