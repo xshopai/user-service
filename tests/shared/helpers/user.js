@@ -4,7 +4,7 @@
  */
 import { get, post, put, del } from './api.js';
 
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:1002';
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:8002';
 
 /**
  * Create user directly via user-service (bypassing auth-service)

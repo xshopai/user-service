@@ -83,13 +83,13 @@ describe('Environment Configuration', () => {
 
   describe('External Services', () => {
     it('should have AUDIT_SERVICE_URL defined or use default', () => {
-      const url = process.env.AUDIT_SERVICE_URL || 'http://localhost:3007';
+      const url = process.env.AUDIT_SERVICE_URL || 'http://localhost:8012';
       expect(url).toBeTruthy();
       expect(url).toMatch(/^https?:\/\//);
     });
 
     it('should have NOTIFICATION_SERVICE_URL defined or use default', () => {
-      const url = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:3003';
+      const url = process.env.NOTIFICATION_SERVICE_URL || 'http://localhost:8011';
       expect(url).toBeTruthy();
       expect(url).toMatch(/^https?:\/\//);
     });

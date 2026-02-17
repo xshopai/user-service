@@ -4,8 +4,8 @@
 import axios from 'axios';
 import { generateTestUser, createUser, getUserByEmail, deleteUser, sleep } from '../../shared/helpers/user.js';
 
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:1002';
-const USER_SERVICE_HEALTH_URL = process.env.USER_SERVICE_HEALTH_URL || 'http://localhost:1002/health';
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:8002';
+const USER_SERVICE_HEALTH_URL = process.env.USER_SERVICE_HEALTH_URL || 'http://localhost:8002/health/ready';
 
 describe('User Service API Tests', () => {
   let testUser;

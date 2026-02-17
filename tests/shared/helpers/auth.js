@@ -4,8 +4,8 @@
  */
 import { post, get } from './api.js';
 
-const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:3001';
-const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:1002';
+const AUTH_SERVICE_URL = process.env.AUTH_SERVICE_URL || 'http://localhost:8004';
+const USER_SERVICE_URL = process.env.USER_SERVICE_URL || 'http://localhost:8002';
 
 /**
  * Register a new user via auth-service

@@ -22,7 +22,7 @@ export function createApiClient(baseURL, options = {}) {
       }
       return config;
     },
-    (error) => Promise.reject(error)
+    (error) => Promise.reject(error),
   );
 
   // Response interceptor
@@ -39,7 +39,7 @@ export function createApiClient(baseURL, options = {}) {
       }
       // Don't reject - let tests handle errors
       return error.response || { status: 500, data: { error: error.message } };
-    }
+    },
   );
 
   return client;
@@ -153,9 +153,9 @@ export async function del(url, options = {}) {
 /**
  * Check service health
  */
-export async function checkHealth(serviceUrl, timeout = 1002) {
+export async function checkHealth(serviceUrl, timeout = 5000) {
   try {
-    const response = await axios.get(`${serviceUrl}/health`, { timeout });
+    const response = await axios.get(`${serviceUrl}/health/ready`, { timeout });
     return response.status === 200;
   } catch (error) {
     return false;
