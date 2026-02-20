@@ -69,5 +69,9 @@
     "node-mocks-http": "^1.17.2",
     "nodemon": "^3.1.10",
     "supertest": "^7.1.4"
+  },
+  "engines": {
+    "node": ">=24.0.0",
+    "npm": ">=10.0.0"
   }
 }
