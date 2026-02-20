@@ -77,11 +77,12 @@ RUN mkdir -p logs && chown -R userservice:nodejs logs
 USER userservice
 
 # Expose port
-EXPOSE 8002
+ENV PORT=8080
+EXPOSE 8080
 
 # Health check (using Node.js to avoid curl dependency)
 HEALTHCHECK --interval=30s --timeout=10s --start-period=40s --retries=3 \
-    CMD node -e "require('http').get('http://localhost:8002/health/ready', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
+    CMD node -e "require('http').get('http://localhost:8080/health/ready', (r) => process.exit(r.statusCode === 200 ? 0 : 1)).on('error', () => process.exit(1))"
 
 # Use dumb-init to handle signals properly
 # In production (Azure Container Apps), Dapr is provided as a sidecar
