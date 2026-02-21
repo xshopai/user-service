@@ -185,7 +185,7 @@ jobs:
         run: |
           echo "Installing production dependencies..."
           npm ci --omit=dev
-          
+
           echo "Creating deployment package..."
           zip -r ${{ github.workspace }}/deploy.zip . -x "*.git*" -x "tests/*" -x ".github/*" -x "*.log" -x ".env*" -q
           echo "✓ Package created: $(du -h deploy.zip | cut -f1)"
