@@ -3,7 +3,7 @@
 # ==============================================================================
 # On push/PR: build & test only.
 # On workflow_dispatch or push-to-main: build, test, then deploy.
-# 
+#
 # Prerequisites: Infra workflow must have created the App Service shell with
 # all settings pre-configured. This workflow only deploys code.
 # ==============================================================================
@@ -42,7 +42,7 @@ on:
         default: ""
 
 env:
-  NODE_VERSION: "24"  # Must match infrastructure runtime (NODE:24-lts)
+  NODE_VERSION: "24" # Must match infrastructure runtime (NODE:24-lts)
   SERVICE_NAME: user-service
   PROJECT_NAME: xshopai
 
@@ -56,10 +56,10 @@ jobs:
 
     steps:
       - name: Checkout code
-        uses: actions/checkout@v4
+        uses: actions/checkout@v6
 
       - name: Setup Node.js
-        uses: actions/setup-node@v4
+        uses: actions/setup-node@v6
         with:
           node-version: ${{ env.NODE_VERSION }}
           cache: "npm"
@@ -83,7 +83,7 @@ jobs:
         if: >
           (github.event_name == 'push' && github.ref == 'refs/heads/main') ||
           github.event_name == 'workflow_dispatch'
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: build-artifacts
           path: |
@@ -126,15 +126,17 @@ jobs:
     steps:
       # Download pre-built artifacts from build-and-test job
       - name: Download build artifacts
-        uses: actions/download-artifact@v4
+        uses: actions/download-artifact@v7
         with:
           name: build-artifacts
           path: .
 
-      - name: Azure login
-        uses: azure/login@v2
+      - name: Azure login (OIDC)
+        uses: azure/login@v2.3.0
         with:
-          creds: ${{ secrets.AZURE_CREDENTIALS }}
+          client-id: ${{ secrets.AZURE_CLIENT_ID }}
+          tenant-id: ${{ secrets.AZURE_TENANT_ID }}
+          subscription-id: ${{ secrets.AZURE_SUBSCRIPTION_ID }}
 
       # -------------------------------------------------------------------
       # Resolve App Service name (must match infra naming convention)
@@ -205,7 +207,7 @@ jobs:
           URL="https://${APP_NAME}.azurewebsites.net/health/live"
           echo "Deployment complete. Performing basic health check..."
           echo "App Service URL: $URL"
-          
+
           # Brief check - App Service health monitoring will catch issues
           for i in {1..5}; do
             HTTP_CODE=$(curl -s -o /dev/null -w "%{http_code}" --max-time 10 "$URL" 2>/dev/null || echo "000")
