@@ -179,18 +179,19 @@ jobs:
 
       # -------------------------------------------------------------------
       # Create deployment package from pre-built artifacts
-      # Artifacts already exclude node_modules, tests, etc. from build job
+      # Install production deps and skip Oryx build on server (more reliable)
       # -------------------------------------------------------------------
       - name: Create deployment package
         run: |
-          echo "Creating deployment package from cached build artifacts..."
-          zip -r ${{ github.workspace }}/deploy.zip . -q
+          echo "Installing production dependencies..."
+          npm ci --omit=dev
+          
+          echo "Creating deployment package..."
+          zip -r ${{ github.workspace }}/deploy.zip . -x "*.git*" -x "tests/*" -x ".github/*" -x "*.log" -x ".env*" -q
           echo "✓ Package created: $(du -h deploy.zip | cut -f1)"
-          echo "✓ Using cached build artifacts (no rebuild required)"
 
       # -------------------------------------------------------------------
-      # Deploy to App Service
-      # Oryx builds on App Service (npm install via SCM_DO_BUILD_DURING_DEPLOYMENT)
+      # Deploy to App Service (SCM_DO_BUILD_DURING_DEPLOYMENT=false skips Oryx)
       # -------------------------------------------------------------------
       - name: Deploy to App Service
         uses: azure/webapps-deploy@v3
