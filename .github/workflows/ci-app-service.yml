@@ -12,7 +12,7 @@ name: CI App Service
 
 on:
   push:
-    branches: [main, develop]
+    branches: [main]
     paths:
       - "src/**"
       - "tests/**"
@@ -159,8 +159,8 @@ jobs:
             exit 1
           fi
 
-          APP_NAME="app-${{ env.SERVICE_NAME }}-${{ env.PROJECT_NAME }}-${ENV}-${SUFFIX}"
-          RESOURCE_GROUP="rg-${{ env.PROJECT_NAME }}-${ENV}-${SUFFIX}"
+          APP_NAME="app-${{ env.SERVICE_NAME }}-${{ env.PROJECT_NAME }}-${SUFFIX}"
+          RESOURCE_GROUP="rg-${{ env.PROJECT_NAME }}-${SUFFIX}"
 
           {
             echo "ENV=$ENV"

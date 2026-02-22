@@ -19,15 +19,15 @@ let serviceTokensCache = null;
 /**
  * Get service token configuration from environment.
  * Used for validating incoming requests from other services.
- * Uses SERVICE_{NAME}_TOKEN pattern (e.g., SERVICE_AUTH_TOKEN).
+ * Uses {SERVICE_NAME}_SERVICE_TOKEN pattern (e.g., AUTH_SERVICE_TOKEN).
  */
 function getServiceTokens() {
   if (!serviceTokensCache) {
     serviceTokensCache = {
-      'auth-service': process.env.SERVICE_AUTH_TOKEN,
-      'admin-service': process.env.SERVICE_ADMIN_TOKEN,
-      'order-service': process.env.SERVICE_ORDER_TOKEN,
-      'web-bff': process.env.SERVICE_WEBBFF_TOKEN,
+      'auth-service': process.env.AUTH_SERVICE_TOKEN,
+      'admin-service': process.env.ADMIN_SERVICE_TOKEN,
+      'order-service': process.env.ORDER_SERVICE_TOKEN,
+      'web-bff': process.env.WEBBFF_SERVICE_TOKEN,
     };
     // Filter out undefined/null values
     serviceTokensCache = Object.fromEntries(Object.entries(serviceTokensCache).filter(([, v]) => v));
