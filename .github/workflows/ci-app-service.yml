@@ -12,7 +12,7 @@ name: CI App Service
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
     paths:
       - "src/**"
       - "tests/**"
