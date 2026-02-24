@@ -45,6 +45,19 @@ const connectDB = async () => {
 
     logger.info(`MongoDB connected: ${conn.connection.host}:${conn.connection.port}/${conn.connection.name}`);
 
+    // Ensure indexes are created (required for Cosmos DB MongoDB API)
+    // Mongoose autoIndex doesn't always work with Cosmos DB
+    if (isCosmosDB) {
+      try {
+        const User = (await import('../models/user.model.js')).default;
+        await User.createIndexes();
+        logger.info('Database indexes synchronized for Cosmos DB');
+      } catch (indexError) {
+        // Log but don't fail - indexes might already exist
+        logger.warn(`Index synchronization warning: ${indexError.message}`);
+      }
+    }
+
     // Handle connection events
     mongoose.connection.on('error', (err) => {
       logger.error(`MongoDB connection error: ${err.message}`);

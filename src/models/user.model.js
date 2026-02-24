@@ -101,5 +101,12 @@ userSchema.pre('save', async function (next) {
   next();
 });
 
+// Create indexes for query performance (required for Cosmos DB MongoDB API)
+// createdAt is used for sorting in admin user list
+userSchema.index({ createdAt: -1 });
+// Compound index for common admin queries
+userSchema.index({ email: 1 });
+userSchema.index({ roles: 1, createdAt: -1 });
+
 const User = mongoose.model('User', userSchema);
 export default User;
