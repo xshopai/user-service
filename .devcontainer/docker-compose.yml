@@ -1,6 +1,6 @@
 services:
   app:
-    image: mcr.microsoft.com/devcontainers/javascript-node:1-24-bullseye
+    image: mcr.microsoft.com/devcontainers/javascript-node:1-24-bookworm
     volumes:
       # Persist node_modules across rebuilds
       - node_modules:/workspaces/user-service/node_modules
