@@ -1,0 +1,34 @@
+services:
+  app:
+    image: mcr.microsoft.com/devcontainers/javascript-node:1-24-bullseye
+    volumes:
+      # Mount the project root into the container
+      - ..:/workspace:cached
+      # Persist node_modules across rebuilds
+      - node_modules:/workspace/node_modules
+    command: sleep infinity
+    depends_on:
+      user-mongodb:
+        condition: service_healthy
+
+  user-mongodb:
+    image: mongo:8.0
+    restart: unless-stopped
+    ports:
+      - "27018:27017"
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: user_service_db
+    volumes:
+      - user_mongodb_data:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  node_modules:
+  user_mongodb_data:
+    name: devcontainer_user_mongodb_data

@@ -1,0 +1,67 @@
+{
+  "name": "User Service",
+
+  // Docker Compose brings up the devcontainer and MongoDB on the same network
+  // so the app can reach MongoDB via its service name (user-mongodb:27017).
+  "dockerComposeFile": "docker-compose.yml",
+  "service": "app",
+  "workspaceFolder": "/workspace",
+
+  // Forward the app port and the local MongoDB port
+  "forwardPorts": [8002, 27018],
+  "portsAttributes": {
+    "8002": {
+      "label": "User Service API",
+      "onAutoForward": "notify"
+    },
+    "27018": {
+      "label": "MongoDB",
+      "onAutoForward": "silent"
+    }
+  },
+
+  // Install Node dependencies after the container is created.
+  // MongoDB is already running as a sibling compose service.
+  "postCreateCommand": "npm install",
+
+  // Copy .env.http as the working .env so the service starts in direct HTTP mode
+  "onCreateCommand": "cp -n .env.http .env || true",
+
+  "customizations": {
+    "vscode": {
+      "extensions": [
+        // JavaScript / Node.js
+        "dbaeumer.vscode-eslint",
+        "esbenp.prettier-vscode",
+        "christian-kohler.npm-intellisense",
+        // REST / API
+        "humao.rest-client",
+        // Docker / containers
+        "ms-azuretools.vscode-docker",
+        // MongoDB
+        "mongodb.mongodb-vscode",
+        // Environment files
+        "mikestead.dotenv",
+        // GitHub
+        "github.vscode-pull-request-github"
+      ],
+      "settings": {
+        "editor.formatOnSave": true,
+        "editor.defaultFormatter": "esbenp.prettier-vscode",
+        "editor.codeActionsOnSave": {
+          "source.fixAll.eslint": "explicit"
+        },
+        "terminal.integrated.defaultProfile.linux": "bash"
+      }
+    }
+  },
+
+  // Environment variables available inside the container
+  "remoteEnv": {
+    "NODE_ENV": "development",
+    "PORT": "8002",
+    "SERVICE_INVOCATION_MODE": "http",
+    // Use the Docker Compose service name - both containers share the same network
+    "MONGODB_URI": "mongodb://admin:admin123@user-mongodb:27017/user_service_db?authSource=admin"
+  }
+}
