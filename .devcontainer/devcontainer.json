@@ -5,7 +5,7 @@
   // so the app can reach MongoDB via its service name (user-mongodb:27017).
   "dockerComposeFile": "docker-compose.yml",
   "service": "app",
-  "workspaceFolder": "/workspace",
+  "workspaceFolder": "/workspaces/user-service",
 
   // Forward the app port and the local MongoDB port
   "forwardPorts": [8002, 27018],

@@ -2,10 +2,8 @@ services:
   app:
     image: mcr.microsoft.com/devcontainers/javascript-node:1-24-bullseye
     volumes:
-      # Mount the project root into the container
-      - ..:/workspace:cached
       # Persist node_modules across rebuilds
-      - node_modules:/workspace/node_modules
+      - node_modules:/workspaces/user-service/node_modules
     command: sleep infinity
     depends_on:
       user-mongodb:
