@@ -15,8 +15,8 @@ export default {
     nodeEnv: process.env.NODE_ENV || 'development',
   },
 
-  // Service Invocation Mode (for consistency with other services)
-  serviceInvocationMode: process.env.SERVICE_INVOCATION_MODE || 'http',
+  // Platform Mode
+  platformMode: process.env.PLATFORM_MODE || 'direct',
 
   logging: {
     level: process.env.LOG_LEVEL || 'debug',

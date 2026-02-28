@@ -24,8 +24,8 @@
   // MongoDB is already running as a sibling compose service.
   "postCreateCommand": "npm install",
 
-  // Copy .env.http as the working .env so the service starts in direct HTTP mode
-  "onCreateCommand": "cp -n .env.http .env || true",
+  // Copy .env.example as the working .env so the service starts in direct HTTP mode
+  "onCreateCommand": "cp -n .env.example .env || true",
 
   "customizations": {
     "vscode": {
@@ -60,7 +60,7 @@
   "remoteEnv": {
     "NODE_ENV": "development",
     "PORT": "8002",
-    "SERVICE_INVOCATION_MODE": "http",
+    "PLATFORM_MODE": "direct",
     // Use the Docker Compose service name - both containers share the same network
     "MONGODB_URI": "mongodb://admin:admin123@user-mongodb:27017/user_service_db?authSource=admin"
   }
