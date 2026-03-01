@@ -19,7 +19,9 @@ let registeredServiceId = '';
  * @param {string} [host='localhost'] - Host address
  */
 export async function register(name, port, host = 'localhost') {
-  if (!CONSUL_URL) return;
+  if (!CONSUL_URL) {
+    return;
+  }
 
   const address = host === '0.0.0.0' ? 'localhost' : host;
   registeredServiceId = `${name}-${address}-${port}`;
@@ -58,7 +60,9 @@ export async function register(name, port, host = 'localhost') {
  * Deregister this service from Consul.
  */
 export async function deregister() {
-  if (!CONSUL_URL || !registeredServiceId) return;
+  if (!CONSUL_URL || !registeredServiceId) {
+    return;
+  }
 
   try {
     const res = await fetch(`${CONSUL_URL}/v1/agent/service/deregister/${registeredServiceId}`, {
