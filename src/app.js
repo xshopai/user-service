@@ -4,6 +4,7 @@ import mongoose from 'mongoose';
 
 import config from './core/config.js';
 import logger from './core/logger.js';
+import { register as consulRegister, deregister as consulDeregister } from './core/consulRegistration.js';
 import connectDB from './database/db.js';
 import adminRoutes from './routes/admin.routes.js';
 import homeRoutes from './routes/home.routes.js';
@@ -44,6 +45,7 @@ const HOST = config.service.host;
 // we create a deadlock: app waits for Dapr -> Dapr waits for app
 const displayHost = HOST === '0.0.0.0' ? 'localhost' : HOST;
 app.listen(PORT, HOST, async () => {
+  await consulRegister('user-service', PORT, HOST);
   logger.info(`User service HTTP server started on ${displayHost}:${PORT} in ${config.service.nodeEnv} mode`, {
     service: config.service.name,
     version: config.service.version,
@@ -75,6 +77,7 @@ const gracefulShutdown = async (signal) => {
   logger.info(`Received ${signal}. Starting graceful shutdown...`);
 
   try {
+    await consulDeregister();
     await mongoose.connection.close();
     logger.info('Database connection closed');
   } catch (err) {
