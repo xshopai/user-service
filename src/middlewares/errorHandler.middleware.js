@@ -3,6 +3,11 @@ import logger from '../core/logger.js';
 /**
  * Centralized error handling middleware
  * Logs errors with trace context and returns consistent error responses
+ * @param {Error & {status?: number, code?: string, details?: any}} err - Error object
+ * @param {import('express').Request} req - Express request object
+ * @param {import('express').Response} res - Express response object
+ * @param {import('express').NextFunction} _next - Express next function (unused)
+ * @returns {void}
  */
 export const errorHandler = (err, req, res, _next) => {
   const status = err.status || 500;

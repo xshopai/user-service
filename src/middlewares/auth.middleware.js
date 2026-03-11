@@ -3,14 +3,27 @@ import User from '../models/user.model.js';
 import logger from '../core/logger.js';
 import ErrorResponse from '../core/errors.js';
 
-// Get JWT config from environment variables
+/**
+ * @typedef {Object} JwtConfig
+ * @property {string} secret - JWT secret key
+ * @property {string} issuer - JWT issuer
+ * @property {string} audience - JWT audience
+ */
+
+/**
+ * Get JWT configuration from environment variables
+ * @returns {JwtConfig} JWT configuration object
+ */
 const getJwtConfig = () => ({
   secret: process.env.JWT_SECRET,
   issuer: process.env.JWT_ISSUER || 'auth-service',
   audience: process.env.JWT_AUDIENCE || 'xshopai-platform',
 });
 
-// Get JWT secret from environment
+/**
+ * Get JWT secret from environment
+ * @returns {string} JWT secret
+ */
 const getJwtSecret = () => process.env.JWT_SECRET;
 
 // Cache service tokens configuration
@@ -20,6 +33,7 @@ let serviceTokensCache = null;
  * Get service token configuration from environment.
  * Used for validating incoming requests from other services.
  * Uses {SERVICE_NAME}_SERVICE_TOKEN pattern (e.g., AUTH_SERVICE_TOKEN).
+ * @returns {Record<string, string>} Map of service names to tokens
  */
 function getServiceTokens() {
   if (!serviceTokensCache) {
@@ -44,6 +58,10 @@ function getServiceTokens() {
  *
  * Usage:
  *   router.get('/internal/users/:email', requireServiceToken, getUserByEmail);
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
  */
 export async function requireServiceToken(req, res, next) {
   try {
@@ -98,6 +116,10 @@ export async function requireServiceToken(req, res, next) {
  * Checks for a JWT in the Authorization header or cookies, verifies it, and attaches user info to req.user.
  * Also checks if the user account is active in the database.
  * Responds with 401 Unauthorized or 403 if the account is deactivated.
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
  */
 export async function requireAuth(req, res, next) {
   try {
@@ -168,6 +190,8 @@ export async function requireAuth(req, res, next) {
 /**
  * Middleware to require specific roles
  * Usage: requireRoles('admin', 'manager')
+ * @param {...string} roles - Required role names
+ * @returns {import('express').RequestHandler} Express middleware function
  */
 export function requireRoles(...roles) {
   return (req, res, next) => {
@@ -199,6 +223,10 @@ export function requireRoles(...roles) {
 /**
  * Middleware to require admin role
  * Convenience wrapper around requireRoles
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {void}
  */
 export function requireAdmin(req, res, next) {
   return requireRoles('admin')(req, res, next);
@@ -207,6 +235,10 @@ export function requireAdmin(req, res, next) {
 /**
  * Middleware to require customer role (or admin)
  * Admins can access customer endpoints
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {void}
  */
 export function requireCustomer(req, res, next) {
   return requireRoles('customer', 'admin')(req, res, next);
@@ -215,6 +247,10 @@ export function requireCustomer(req, res, next) {
 /**
  * Optional authentication middleware
  * Attaches user info if token is present, but doesn't require it
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
  */
 export async function optionalAuth(req, res, next) {
   try {
