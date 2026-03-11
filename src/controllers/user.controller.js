@@ -8,8 +8,6 @@ import {
   publishUserCreated,
   publishUserDeleted,
   publishUserUpdated,
-  publishUserLoggedIn,
-  publishUserLoggedOut,
   publishUserDeactivated,
   publishUserReactivated,
 } from '../events/publisher.js';

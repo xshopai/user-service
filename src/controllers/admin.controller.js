@@ -12,7 +12,9 @@ import ErrorResponse from '../core/errors.js';
 
 /**
  * Get comprehensive user statistics for admin dashboard
- * @param {import('express').Request<{}, {}, {}, {includeRecent?: string, recentLimit?: string, period?: string}>} req - Express request
+ * @param {import('express').Request<{}, {}, {}, {
+ *   includeRecent?: string, recentLimit?: string, period?: string
+ * }>} req - Express request
  * @param {import('express').Response} res - Express response
  * @param {import('express').NextFunction} _next - Express next function (unused)
  * @returns {Promise<void>}

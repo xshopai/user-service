@@ -10,6 +10,22 @@ import logger from '../core/logger.js';
  */
 
 /**
+ * @typedef {Object} WishlistItem
+ * @property {string} [_id] - Wishlist item ID (auto-generated)
+ * @property {string} productId - Product ID
+ * @property {string} [productName] - Product name
+ * @property {number} [price] - Product price
+ * @property {Date} [addedAt] - Date added to wishlist
+ */
+
+/**
+ * Get all wishlist items for the authenticated user
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
+/**
  * @desc    Get all wishlist items for the authenticated user
  * @route   GET /users/wishlist
  * @access  Private
@@ -31,6 +47,13 @@ export const getWishlist = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Add item to user's wishlist
+ * @param {import('express').Request<{}, {}, WishlistItem>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 /**
  * @desc    Add item to user's wishlist
  * @route   POST /users/wishlist

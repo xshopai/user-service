@@ -50,18 +50,18 @@ export async function updateUser(userId, updateFields, { isAdmin = false } = {})
   // Define allowed fields based on user role
   const allowedFields = isAdmin
     ? [
-        'firstName',
-        'lastName',
-        'displayName',
-        'phoneNumber',
-        'email',
-        'isEmailVerified',
-        'isActive',
-        'roles',
-        'tier',
-        'password',
-        'preferences',
-      ]
+      'firstName',
+      'lastName',
+      'displayName',
+      'phoneNumber',
+      'email',
+      'isEmailVerified',
+      'isActive',
+      'roles',
+      'tier',
+      'password',
+      'preferences',
+    ]
     : ['firstName', 'lastName', 'displayName', 'phoneNumber', 'isActive', 'isEmailVerified', 'password', 'preferences'];
 
   // Filter to only allowed fields
