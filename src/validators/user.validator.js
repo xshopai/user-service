@@ -1,17 +1,39 @@
 import mongoose from 'mongoose';
 
+/**
+ * @typedef {Object} ValidationResult
+ * @property {boolean} valid - Whether validation passed
+ * @property {string} [error] - Error message if validation failed
+ * @property {string} [code] - Error code if validation failed
+ */
+
+/**
+ * @typedef {Object} PasswordValidationResult
+ * @property {boolean} valid - Whether password is valid
+ * @property {string} [error] - Error message if validation failed
+ */
+
+/**
+ * @typedef {Object} UserDataValidation
+ * @property {string} [email] - User's email
+ * @property {string} [password] - User's password
+ * @property {string} [firstName] - User's first name
+ * @property {string} [lastName] - User's last name
+ * @property {string} [phoneNumber] - User's phone number
+ */
+
+/**
+ * @typedef {Object} ValidationOptions
+ * @property {boolean} [isUpdate] - Whether this is an update operation
+ */
+
 // User input validation utility
 const userValidator = {
   /**
    * Validate user data (for creation or update)
-   * @param {Object} data - User data to validate
-   * @param {string} data.email - User email (required for creation)
-   * @param {string} data.password - User password (required for creation)
-   * @param {string} [data.firstName] - User first name (optional)
-   * @param {string} [data.lastName] - User last name (optional)
-   * @param {string} [data.phoneNumber] - User phone number (optional)
-   * @param {boolean} [options.isUpdate=false] - Whether this is an update operation (makes email/password optional)
-   * @returns {Object} { valid: boolean, error?: string, code?: string }
+   * @param {UserDataValidation} data - User data to validate
+   * @param {ValidationOptions} [options] - Validation options
+   * @returns {ValidationResult} Validation result
    */
   validateUserData({ email, password, firstName, lastName, phoneNumber }, options = { isUpdate: false }) {
     // Email validation (required for creation, optional for update)
@@ -64,9 +86,19 @@ const userValidator = {
     return { valid: true };
   },
 
+  /**
+   * Validate MongoDB ObjectId format
+   * @param {string} id - ObjectId to validate
+   * @returns {boolean} Whether the ID is valid
+   */
   isValidObjectId(id) {
     return mongoose.Types.ObjectId.isValid(id);
   },
+  /**
+   * Validate email format
+   * @param {string} email - Email to validate
+   * @returns {boolean} Whether the email is valid
+   */
   isValidEmail(email) {
     // Must be string, trimmed, valid email, min 5, max 100
     return (
@@ -76,6 +108,11 @@ const userValidator = {
       /^[^@\s]+@[^@\s]+\.[^@\s]+$/.test(email.trim())
     );
   },
+  /**
+   * Validate password strength
+   * @param {string} password - Password to validate
+   * @returns {PasswordValidationResult} Validation result
+   */
   isValidPassword(password) {
     if (typeof password !== 'string') {
       return { valid: false, error: 'Password must be a string' };
@@ -91,6 +128,11 @@ const userValidator = {
     }
     return { valid: true };
   },
+  /**
+   * Validate first name
+   * @param {string} firstName - First name to validate
+   * @returns {boolean} Whether the first name is valid
+   */
   isValidFirstName(firstName) {
     // Optional field, but if provided must be valid
     if (!firstName) {
@@ -103,6 +145,11 @@ const userValidator = {
       /^[a-zA-Z\s\-'\.]+$/.test(firstName.trim())
     );
   },
+  /**
+   * Validate last name
+   * @param {string} lastName - Last name to validate
+   * @returns {boolean} Whether the last name is valid
+   */
   isValidLastName(lastName) {
     // Optional field, but if provided must be valid
     if (!lastName) {
@@ -115,6 +162,11 @@ const userValidator = {
       /^[a-zA-Z\s\-'\.]+$/.test(lastName.trim())
     );
   },
+  /**
+   * Validate display name
+   * @param {string} displayName - Display name to validate
+   * @returns {boolean} Whether the display name is valid
+   */
   isValidDisplayName(displayName) {
     // Optional field, but if provided must be valid
     if (!displayName) {
@@ -122,6 +174,11 @@ const userValidator = {
     }
     return typeof displayName === 'string' && displayName.trim().length > 0 && displayName.trim().length <= 100;
   },
+  /**
+   * Validate phone number
+   * @param {string} phoneNumber - Phone number to validate
+   * @returns {boolean} Whether the phone number is valid
+   */
   isValidPhoneNumber(phoneNumber) {
     // Optional field, but if provided must be valid
     if (!phoneNumber) {
@@ -151,6 +208,11 @@ const userValidator = {
     const digitCount = (trimmed.match(/\d/g) || []).length;
     return digitCount >= 7 && digitCount <= 15;
   },
+  /**
+   * Validate user roles array
+   * @param {string[]} roles - Array of role names
+   * @returns {boolean} Whether the roles are valid
+   */
   isValidRoles(roles) {
     // Must be array of valid role strings
     const validRoles = ['customer', 'admin', 'vendor', 'moderator', 'support'];
@@ -162,6 +224,11 @@ const userValidator = {
       )
     );
   },
+  /**
+   * Validate user tier
+   * @param {string} tier - User tier to validate
+   * @returns {boolean} Whether the tier is valid
+   */
   isValidTier(tier) {
     // Must be a valid tier string
     const validTiers = ['basic', 'premium', 'gold', 'platinum'];
