@@ -8,12 +8,50 @@ import {
   publishUserCreated,
   publishUserDeleted,
   publishUserUpdated,
-  publishUserLoggedIn,
-  publishUserLoggedOut,
   publishUserDeactivated,
   publishUserReactivated,
 } from '../events/publisher.js';
 
+/**
+ * @typedef {Object} CreateUserRequest
+ * @property {string} email - User's email address
+ * @property {string} password - User's password
+ * @property {string} firstName - User's first name
+ * @property {string} lastName - User's last name
+ * @property {string} [phoneNumber] - User's phone number
+ * @property {boolean} [isEmailVerified] - Email verification status
+ * @property {string[]} [roles] - User roles
+ */
+
+/**
+ * @typedef {Object} UpdateUserRequest
+ * @property {string} [firstName] - User's first name
+ * @property {string} [lastName] - User's last name
+ * @property {string} [displayName] - User's display name
+ * @property {string} [phoneNumber] - User's phone number
+ * @property {boolean} [isActive] - Account active status
+ * @property {boolean} [isEmailVerified] - Email verification status
+ * @property {Object} [preferences] - User preferences
+ */
+
+/**
+ * @typedef {Object} UpdatePasswordRequest
+ * @property {string} currentPassword - Current password
+ * @property {string} newPassword - New password
+ */
+
+/**
+ * @typedef {Object} BatchGetUsersRequest
+ * @property {string[]} userIds - Array of user IDs to retrieve
+ */
+
+/**
+ * Create a new user
+ * @param {import('express').Request<{}, {}, CreateUserRequest>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Create a new user
 // @route   POST /users
 // @access  Public
@@ -90,6 +128,13 @@ export const createUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Get own user profile
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Get own user profile
 // @route   GET /users
 // @access  Private
@@ -102,6 +147,13 @@ export const getUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Update own user profile, password, or deactivate account
+ * @param {import('express').Request<{}, {}, UpdateUserRequest>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Update own user profile, password, or deactivate account
 // @route   PATCH /users
 // @access  Private
@@ -174,6 +226,13 @@ export const deleteUser = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Find user by email
+ * @param {import('express').Request<{}, {}, {}, {email: string}>} req - Express request with email query param
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Find user by email
 // @route   GET /users/findByEmail
 // @access  Public (service-to-service)
@@ -187,6 +246,13 @@ export const findByEmail = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Find user by ID
+ * @param {import('express').Request<{id: string}>} req - Express request with ID param
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Find user by ID
 // @route   GET /users/:id
 // @access  Public (service-to-service)
@@ -200,6 +266,13 @@ export const getUserById = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Batch get users by IDs
+ * @param {import('express').Request<{}, {}, BatchGetUsersRequest>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Batch get users by IDs
 // @route   POST /users/batch
 // @access  Public (service-to-service)
@@ -254,6 +327,13 @@ export const batchGetUsers = asyncHandler(async (req, res, next) => {
 
 // Test compatibility functions - aliases to existing functions
 
+/**
+ * Deactivate account (set isActive to false)
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Deactivate account (set isActive to false)
 // @route   PATCH /users/deactivate
 // @access  Private
@@ -279,6 +359,13 @@ export const deactivateAccount = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Update password
+ * @param {import('express').Request<{}, {}, UpdatePasswordRequest>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Update password
 // @route   PATCH /users/password
 // @access  Private
@@ -312,6 +399,13 @@ export const updatePassword = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Update user by ID (admin function)
+ * @param {import('express').Request<{id: string}, {}, UpdateUserRequest>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Update user by ID (admin function)
 // @route   PATCH /admin/users/:id
 // @access  Private/Admin
@@ -324,6 +418,18 @@ export const updateUserById = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * @typedef {Object} UpdateUserPasswordRequest
+ * @property {string} newPassword - New password to set
+ */
+
+/**
+ * Update user password by ID (admin function)
+ * @param {import('express').Request<{id: string}, {}, UpdateUserPasswordRequest>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 // @desc    Update user password by ID (admin function)
 // @route   PATCH /admin/users/:id/password
 // @access  Private/Admin

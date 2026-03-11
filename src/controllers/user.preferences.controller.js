@@ -5,6 +5,21 @@ import logger from '../core/logger.js';
 import { publishUserUpdated } from '../events/publisher.js';
 
 /**
+ * @typedef {Object} UserPreferences
+ * @property {string} theme - UI theme ('light', 'dark', 'auto')
+ * @property {Object} notifications - Notification preferences
+ * @property {boolean} notifications.email - Email notifications enabled
+ * @property {boolean} notifications.sms - SMS notifications enabled
+ */
+
+/**
+ * Get user preferences
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
+/**
  * @desc    Get user preferences
  * @route   GET /api/users/preferences
  * @access  Private
@@ -29,6 +44,13 @@ export const getPreferences = asyncHandler(async (req, res, next) => {
   });
 });
 
+/**
+ * Update user preferences
+ * @param {import('express').Request<{}, {}, Partial<UserPreferences>>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 /**
  * @desc    Update user preferences
  * @route   PATCH /api/users/preferences

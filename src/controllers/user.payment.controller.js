@@ -10,6 +10,25 @@ import logger from '../core/logger.js';
  */
 
 /**
+ * @typedef {Object} PaymentMethod
+ * @property {string} [_id] - Payment method ID (auto-generated)
+ * @property {string} type - Payment type (credit_card, debit_card, paypal)
+ * @property {string} provider - Payment provider (visa, mastercard, amex, paypal)
+ * @property {string} last4 - Last 4 digits of card/account
+ * @property {number} expiryMonth - Expiry month (1-12)
+ * @property {number} expiryYear - Expiry year (4 digits)
+ * @property {string} [cardholderName] - Cardholder name
+ * @property {boolean} [isDefault] - Whether this is the default payment method
+ */
+
+/**
+ * Get all payment methods for the authenticated user
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
+/**
  * @desc    Get all payment methods for the authenticated user
  * @route   GET /users/payment-methods
  * @access  Private
@@ -31,6 +50,13 @@ export const getPaymentMethods = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Add payment method to user's payment methods list
+ * @param {import('express').Request<{}, {}, PaymentMethod>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 /**
  * @desc    Add payment method to user's payment methods list
  * @route   POST /users/payment-methods

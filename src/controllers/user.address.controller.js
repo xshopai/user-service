@@ -10,6 +10,24 @@ import logger from '../core/logger.js';
  */
 
 /**
+ * @typedef {Object} Address
+ * @property {string} [_id] - Address ID (auto-generated)
+ * @property {string} street - Street address
+ * @property {string} city - City
+ * @property {string} state - State/Province
+ * @property {string} zipCode - ZIP/Postal code
+ * @property {string} country - Country
+ * @property {boolean} [isDefault] - Whether this is the default address
+ */
+
+/**
+ * Get all addresses for the authenticated user
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
+/**
  * @desc    Get all addresses for the authenticated user
  * @route   GET /users/addresses
  * @access  Private
@@ -31,6 +49,13 @@ export const getAddresses = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Add address to user's address list
+ * @param {import('express').Request<{}, {}, Address>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 /**
  * @desc    Add address to user's address list
  * @route   POST /users/addresses
@@ -64,6 +89,13 @@ export const addAddress = asyncHandler(async (req, res, next) => {
   }
 });
 
+/**
+ * Update specific address
+ * @param {import('express').Request<{addressId: string}, {}, Partial<Address>>} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {Promise<void>}
+ */
 /**
  * @desc    Update specific address
  * @route   PATCH /users/addresses/:addressId

@@ -11,6 +11,10 @@ import logger from '../core/logger.js';
  * - Makes them available to controllers/services via req.traceId and req.spanId
  * - Adds X-Trace-ID to response headers for client-side correlation
  * - Provides fallback values when Dapr tracing is not enabled
+ * @param {import('express').Request} req - Express request
+ * @param {import('express').Response} res - Express response
+ * @param {import('express').NextFunction} next - Express next function
+ * @returns {void}
  */
 const traceContextMiddleware = (req, res, next) => {
   const traceparent = req.headers['traceparent'];
