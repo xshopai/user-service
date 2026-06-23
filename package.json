@@ -63,7 +63,7 @@
     "@microsoft/eslint-formatter-sarif": "^3.1.0",
     "babel-jest": "^30.0.0",
     "cross-env": "^10.1.0",
-    "dotenv-cli": "^8.0.0",
+    "dotenv-cli": "^11.0.0",
     "eslint": "^9.34.0",
     "jest": "^30.0.5",
     "node-mocks-http": "^1.17.2",
